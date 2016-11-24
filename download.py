@@ -11,7 +11,7 @@ import pandas as pd
 from math import radians, cos, sin, asin, sqrt
 from sys import exit
 
-SOCRATA_TOKEN=''
+SOCRATA_TOKEN='jWNb7dvQQlhOyTJPutAIGJheR'
 
 INSPECTION_ENDPOINT = 'https://data.cityofchicago.org/resource/cwig-ma7x.json'
 BUSINESS_ENDPOINT = 'https://data.cityofchicago.org/resource/xqx5-8hwx.json'
@@ -220,6 +220,8 @@ def main(date=datetime.datetime.today()):
                                                  u'license_status', u'longitude',
                                                  u'police_district', u'precinct',
                                                  u'site_number', u'ward_precinct', u'zip_code']]
+
+
     biz_df = biz_df.set_index('license_number')
     biz_df['license_start_date'] = pd.to_datetime(biz_df['license_start_date'])
 
