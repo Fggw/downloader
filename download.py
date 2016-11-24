@@ -7,6 +7,7 @@ for Sam, Luke, Jake, and Jeremy's group.
 import datetime
 import optparse
 import requests
+import numpy as np
 import pandas as pd
 from math import radians, cos, sin, asin, sqrt
 from sys import exit
@@ -174,7 +175,7 @@ def filter_crime_by_police(df):
     del ret['date']
     return ret
 
-def main(date=datetime.datetime.today()):
+def main(date=datetime.datetime.today(),export=True):
     """
     Runner function.
     """
@@ -202,17 +203,34 @@ def main(date=datetime.datetime.today()):
     business_data = get_business_data(ids)
 
     print "RECEIVED {} business details".format(len(business_data))
-
+    
+    
+    print inspection_data[0].keys()
     inspection_df = pd.DataFrame(inspection_data).loc[:, [u'dba_name',
                                                           u'facility_type',
                                                           u'inspection_date',
                                                           u'inspection_type',
+                                                          u'insepction_id',
+                                                          u'violations',
                                                           u'latitude',
                                                           u'license_',
                                                           u'longitude',
                                                           u'results',
                                                           u'risk',
                                                           u'zip']]
+    bad_indices = []
+    good_indices = []
+    for biz_index in range(len(business_data)):
+        biz_dict = business_data[biz_index]
+        if type(biz_dict) != type({1: 0}):
+            bad_indices.append(biz_index)
+        else:
+            good_indices.append(biz_index)
+    
+    
+    business_data = list(np.array(business_data)[good_indices])
+    
+
 
     biz_df = pd.DataFrame(business_data).loc[:, [u'business_activity', u'date_issued', 
                                                  u'latitude', u'license_description',
@@ -277,7 +295,6 @@ def main(date=datetime.datetime.today()):
         exit(1)
     print "CRIME LEN: {}".format(len(crime_data))
 
-
     crime_df = pd.DataFrame(crime_data).loc[:, ['date', 'latitude', 'longitude', 'district']]
     crime_df['date'] = pd.to_datetime(crime_df['date'])
     crime_df['district'] = pd.to_numeric(crime_df['district'])
@@ -305,15 +322,18 @@ def main(date=datetime.datetime.today()):
     ###
     ### This code works, but it's really really fucking slow, so maybe don't run it.
     ###
-    # insp_biz_df['crimes_by_location'] = insp_biz_df.apply(lambda r: count_crimes_nearby(r, crime_df),axis=1)
+    #insp_biz_df['crimes_by_location'] = insp_biz_df.apply(lambda r: count_crimes_nearby(r, crime_df),axis=1)
     import os
-    insp_biz_df.to_csv('DOWNLOADED_DATA.csv', index=False)
+    if export == True:
+        insp_biz_df.to_csv('DOWNLOADED_DATA.csv', index=False)
     
     # weather_url = build_weather_query('02138', start_date,
     #                                        datetime.datetime.today())
     # print weather_url
     # print make_request(,
     #                    auth=NOAA_TOKEN).json()
+
+                 auth=NOAA_TOKEN).json()
 
 
 if __name__ == '__main__':
