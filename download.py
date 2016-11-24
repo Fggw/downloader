@@ -11,7 +11,7 @@ import pandas as pd
 from math import radians, cos, sin, asin, sqrt
 from sys import exit
 
-SOCRATA_TOKEN = ''
+SOCRATA_TOKEN=''
 
 INSPECTION_ENDPOINT = 'https://data.cityofchicago.org/resource/cwig-ma7x.json'
 BUSINESS_ENDPOINT = 'https://data.cityofchicago.org/resource/xqx5-8hwx.json'
@@ -304,8 +304,8 @@ def main(date=datetime.datetime.today()):
     ### This code works, but it's really really fucking slow, so maybe don't run it.
     ###
     # insp_biz_df['crimes_by_location'] = insp_biz_df.apply(lambda r: count_crimes_nearby(r, crime_df),axis=1)
-
-    return insp_biz_df
+    import os
+    insp_biz_df.to_csv('DOWNLOADED_DATA.csv', index=False)
     
     # weather_url = build_weather_query('02138', start_date,
     #                                        datetime.datetime.today())
