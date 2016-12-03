@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from math import radians, cos, sin, asin, sqrt
 from sys import exit
+import itertools
 
 SOCRATA_TOKEN='jWNb7dvQQlhOyTJPutAIGJheR'
 
@@ -53,10 +54,10 @@ def build_business_query(ids):
     Build the URL query for the license numbers
     """
     # in_set = ", ".join([repr(str(i)) for i in biz_ids])
-    return "{}?$where=license_number in({})&$limit=10000000".format(BUSINESS_ENDPOINT, ', '.join(["'{}'".format(i) for i in ids]))
+    return "{}?$where=license_number in({})&$limit=10000000".format(BUSINESS_ENDPOINT, ', '.join(["'{}'".format(i) for i in ids if i is not None]))
 
 def build_license_query(account_numbers):
-    return "{}?$where=account_number in({})&$limit=10000000".format(BUSINESS_ENDPOINT, ', '.join(["'{}'".format(an) for an in account_numbers]))
+    return "{}?$where=account_number in({})&$limit=10000000".format(BUSINESS_ENDPOINT, ', '.join(["'{}'".format(an) for an in account_numbers if an is not None]))
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
@@ -180,6 +181,11 @@ def filter_crime_by_police(df):
     ret = df[before & after].copy()
     del ret['date']
     return ret
+
+def crime_to_buckets(crime_df, (lat, lon)): 
+    distances = crime_df.apply(lambda r : distance((lat,lon), (r['latitude'], r['longitude'])), axis=1)    
+    keep = distances < 3
+    return crime_df[keep]
 
 def main(date=datetime.datetime.today(),export=True):
     """
@@ -324,7 +330,60 @@ def main(date=datetime.datetime.today(),export=True):
     crime_by_district = crime_by_district.reset_index()
 
     insp_biz_df['police_district'] = pd.to_numeric(insp_biz_df['police_district'])
-    insp_biz_df = pd.merge(insp_biz_df, crime_by_district, left_on=['inspection_date', 'police_district'], right_on=['date', 'district'], how='left')
+    # insp_biz_df = pd.merge(insp_biz_df, crime_by_district, left_on=['inspection_date', 'police_district'], right_on=['date', 'district'], how='left')
+
+    n_long_bins = 7
+    n_lat_bins = 10
+
+    yedges = np.linspace(insp_biz_df.longitude.min(),insp_biz_df.longitude.max(),n_long_bins+1)
+    xedges = np.linspace(insp_biz_df.latitude.min(),insp_biz_df.latitude.max(),n_lat_bins+1)
+    bucket_points = list(itertools.product(xedges, yedges))
+    nearby_subsets = [crime_to_buckets(crime_df, p) for p in bucket_points]
+
+    cdf = crime_df.set_index('date')
+    total_crime_by_date = cdf.groupby(cdf.index.date).count()['latitude']
+    total_crime_by_date = total_crime_by_date.rename('crimes_by_date')
+    total_crime_by_date = total_crime_by_date.cumsum()
+
+    point_crime_counts = {}
+
+    for point, subset in zip(bucket_points, nearby_subsets):
+        s = subset.set_index('date')
+        s = s.groupby(s.index.date).count()['latitude']
+        s = s.rename('count_by_date')
+
+        if len(s) > 0: 
+            crime_frac = s / total_crime_by_date
+            point_crime_counts[point] = crime_frac
+        else:
+            point_crime_counts[point] = None
+
+    def choose_nearest_x(r, points):
+        dists = np.array([distance((r['latitude'], r['longitude']), p) for p in points])
+        dmin =  dists.argmin()
+        return points[dmin][0]
+
+    def choose_nearest_y(r, points):
+        dists = np.array([distance((r['latitude'], r['longitude']), p) for p in points])
+        dmin =  dists.argmin()
+        return points[dmin][1]
+
+    insp_biz_df['near_x'] = insp_biz_df.apply(lambda r : choose_nearest_x(r, point_crime_counts.keys()), axis=1)
+    insp_biz_df['near_y'] = insp_biz_df.apply(lambda r : choose_nearest_y(r, point_crime_counts.keys()), axis=1)
+
+    def get_point_counts(row):
+        point = (row['near_x'], row['near_y'])        
+        nearby = point_crime_counts[point]
+            
+        if nearby is None:
+            return 0
+        
+        try:
+            return nearby.loc[row['inspection_date'].date()]
+        except KeyError:
+            return 0
+
+    insp_biz_df['point_crime_count'] = insp_biz_df.apply(get_point_counts, axis=1)
 
     ###
     ### This code works, but it's really really fucking slow, so maybe don't run it.
