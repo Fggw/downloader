@@ -55,6 +55,10 @@ def build_business_query(ids):
     # in_set = ", ".join([repr(str(i)) for i in biz_ids])
     return "{}?$where=license_number in({})&$limit=10000000".format(BUSINESS_ENDPOINT, ', '.join(["'{}'".format(i) for i in ids]))
 
+def license_query(account_number):
+
+    return "{}?$where=account_number is "
+
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in xrange(0, len(l), n):
@@ -232,27 +236,31 @@ def main(date=datetime.datetime.today(),export=True):
     
 
 
-    biz_df = pd.DataFrame(business_data).loc[:, [u'business_activity', u'date_issued', 
-                                                 u'latitude', u'license_description',
-                                                 u'license_number', u'license_start_date',
-                                                 u'license_status', u'longitude',
+    # biz_df = pd.DataFrame(business_data).loc[:, [u'business_activity', u'date_issued'
+    #                                               , u'license_description',
+    #                                              u'license_number', u'license_start_date',
+    #                                              u'license_status', u'longitude',
+    #                                              u'police_district', u'precinct',
+    #                                              u'account_number', 
+    #                                              u'site_number', u'ward_precinct', u'zip_code']]
+    biz_df = pd.DataFrame(business_data).loc[:, [u'license_number', 
                                                  u'police_district', u'precinct',
-                                                 u'site_number', u'ward_precinct', u'zip_code']]
+                                                 u'account_number', 
+                                                 u'site_number', u'ward_precinct']]
 
 
     biz_df = biz_df.set_index('license_number')
-    biz_df['license_start_date'] = pd.to_datetime(biz_df['license_start_date'])
+    # biz_df['license_start_date'] = pd.to_datetime(biz_df['license_start_date'])
 
-    biz_df = biz_df.groupby(biz_df.index).apply(lambda g: g[g['license_start_date'] == g['license_start_date'].max()])
-    biz_df.index = biz_df.index.droplevel()
+    biz_df = biz_df.groupby(biz_df.index).apply(lambda g: g.ix[0])
 
-    insp_biz_df = inspection_df.join(biz_df, rsuffix='_biz', on='license_')
+    insp_biz_df = inspection_df.join(biz_df, on='license_')
     
     insp_biz_df['latitude'] = pd.to_numeric(insp_biz_df['latitude'])
     insp_biz_df['longitude'] = pd.to_numeric(insp_biz_df['longitude'])
-    insp_biz_df['latitude_biz'] = pd.to_numeric(insp_biz_df['latitude_biz'],errors='coerce')
-    insp_biz_df['longitude_biz'] = pd.to_numeric(insp_biz_df['longitude_biz'],errors='coerce')
     insp_biz_df['inspection_date'] = pd.to_datetime(insp_biz_df['inspection_date'])
+
+    return insp_biz_df
 
     sanitation_url = build_sanitation_query(start_date)
     try:
