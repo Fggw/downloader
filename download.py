@@ -55,34 +55,36 @@ def build_business_query(ids):
     # in_set = ", ".join([repr(str(i)) for i in biz_ids])
     return "{}?$where=license_number in({})&$limit=10000000".format(BUSINESS_ENDPOINT, ', '.join(["'{}'".format(i) for i in ids]))
 
-def license_query(account_number):
-
-    return "{}?$where=account_number is "
+def build_license_query(account_numbers):
+    return "{}?$where=account_number in({})&$limit=10000000".format(BUSINESS_ENDPOINT, ', '.join(["'{}'".format(an) for an in account_numbers]))
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in xrange(0, len(l), n):
         yield l[i:i + n]
 
-def get_business_data(ids):
+def get_business_data(ids, query_type=build_business_query):
     """
     Retrieve business license record data for all of the ids in ids
     batching requests as appropriate (can request ~30 at a time)
     """
-    urls = [build_business_query(id_chunk) for id_chunk in chunks(ids, 300)]
+    urls = [query_type(id_chunk) for id_chunk in chunks(ids, 300)]
 
     json_data = []
     for url in urls:
         try:
             try:
                 data = make_request(url).json()
+                if type(data) is dict:
+                    print data
+
                 json_data.extend(data)
                 print "Succeeded!"
             except requests.HTTPError as e:
-                print e
+                print "Failed: {}".format(e)
                 continue
         except Exception as e:
-            print e
+            print "General exception: {}".format(e)
             print type(data)
             continue
 
@@ -208,13 +210,11 @@ def main(date=datetime.datetime.today(),export=True):
 
     print "RECEIVED {} business details".format(len(business_data))
     
-    
-    print inspection_data[0].keys()
     inspection_df = pd.DataFrame(inspection_data).loc[:, [u'dba_name',
                                                           u'facility_type',
                                                           u'inspection_date',
                                                           u'inspection_type',
-                                                          u'insepction_id',
+                                                          u'inspection_id',
                                                           u'violations',
                                                           u'latitude',
                                                           u'license_',
@@ -234,15 +234,6 @@ def main(date=datetime.datetime.today(),export=True):
     
     business_data = list(np.array(business_data)[good_indices])
     
-
-
-    # biz_df = pd.DataFrame(business_data).loc[:, [u'business_activity', u'date_issued'
-    #                                               , u'license_description',
-    #                                              u'license_number', u'license_start_date',
-    #                                              u'license_status', u'longitude',
-    #                                              u'police_district', u'precinct',
-    #                                              u'account_number', 
-    #                                              u'site_number', u'ward_precinct', u'zip_code']]
     biz_df = pd.DataFrame(business_data).loc[:, [u'license_number', 
                                                  u'police_district', u'precinct',
                                                  u'account_number', 
@@ -250,23 +241,31 @@ def main(date=datetime.datetime.today(),export=True):
 
 
     biz_df = biz_df.set_index('license_number')
-    # biz_df['license_start_date'] = pd.to_datetime(biz_df['license_start_date'])
-
     biz_df = biz_df.groupby(biz_df.index).apply(lambda g: g.ix[0])
-
     insp_biz_df = inspection_df.join(biz_df, on='license_')
     
     insp_biz_df['latitude'] = pd.to_numeric(insp_biz_df['latitude'])
     insp_biz_df['longitude'] = pd.to_numeric(insp_biz_df['longitude'])
     insp_biz_df['inspection_date'] = pd.to_datetime(insp_biz_df['inspection_date'])
 
-    return insp_biz_df
+    account_numbers = np.array(np.unique(insp_biz_df['account_number']))
+    account_numbers = account_numbers.astype(str)
+    account_numbers = account_numbers[account_numbers != 'nan']
+    
+    licenses = pd.DataFrame(get_business_data(account_numbers, query_type=build_license_query))
+
+    licenses = licenses.loc[:, ['account_number', 'site_number', 'address', 'business_activity']]
+    lic_dummied = pd.get_dummies(licenses, columns=['business_activity'])
+    grouped = lic_dummied.groupby(['account_number', 'site_number']).sum()
+    grouped[grouped > 0] = 1
+
+    insp_biz_df = insp_biz_df.join(grouped, on=['account_number', 'site_number'])
 
     sanitation_url = build_sanitation_query(start_date)
     try:
         sanitation_data = make_request(sanitation_url).json()
     except requests.HTTPError as excep:
-        print crime_url
+        print sanitation_url
         print excep
         exit(1)
     print "SANITATION LEN: {}".format(len(sanitation_data))
@@ -332,16 +331,10 @@ def main(date=datetime.datetime.today(),export=True):
     ###
     #insp_biz_df['crimes_by_location'] = insp_biz_df.apply(lambda r: count_crimes_nearby(r, crime_df),axis=1)
     import os
-    if export == True:
+    if export:
         insp_biz_df.to_csv('DOWNLOADED_DATA.csv', index=False)
     
-    # weather_url = build_weather_query('02138', start_date,
-    #                                        datetime.datetime.today())
-    # print weather_url
-    # print make_request(,
-    #                    auth=NOAA_TOKEN).json()
-
-                 auth=NOAA_TOKEN).json()
+    return insp_biz_df
 
 
 if __name__ == '__main__':
