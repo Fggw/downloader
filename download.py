@@ -296,6 +296,7 @@ def main(date=datetime.datetime.today(),export=True):
     ### This code works, but is also very slow. Only run it if you find out the dataset has a lot of 
     ### missing values. 
     # insp_biz_df['sanitation_by_location'] = insp_biz_df.apply(lambda r: count_incidents_nearby(r, sanitation_df),axis=1)
+    
     # insp_biz_df = insp_biz_df.join(sanit_df, on=['police_district'])
     insp_biz_df = pd.merge(insp_biz_df, sanit_df, left_on=['inspection_date', 'police_district'], right_on=['creation_date', 'police_district'], how='left')
 
@@ -330,7 +331,7 @@ def main(date=datetime.datetime.today(),export=True):
     crime_by_district = crime_by_district.reset_index()
 
     insp_biz_df['police_district'] = pd.to_numeric(insp_biz_df['police_district'])
-    # insp_biz_df = pd.merge(insp_biz_df, crime_by_district, left_on=['inspection_date', 'police_district'], right_on=['date', 'district'], how='left')
+    insp_biz_df = pd.merge(insp_biz_df, crime_by_district, left_on=['inspection_date', 'police_district'], right_on=['date', 'district'], how='left')
 
     n_long_bins = 7
     n_lat_bins = 10
@@ -338,25 +339,39 @@ def main(date=datetime.datetime.today(),export=True):
     yedges = np.linspace(insp_biz_df.longitude.min(),insp_biz_df.longitude.max(),n_long_bins+1)
     xedges = np.linspace(insp_biz_df.latitude.min(),insp_biz_df.latitude.max(),n_lat_bins+1)
     bucket_points = list(itertools.product(xedges, yedges))
-    nearby_subsets = [crime_to_buckets(crime_df, p) for p in bucket_points]
+    nearby_crime_subsets = [crime_to_buckets(crime_df, p) for p in bucket_points]
+    nearby_sanit_subsets = [crime_to_buckets(sanitation_df, p) for p in bucket_points]
+
+    sdf = sanitation_df.set_index('creation_date')
+    total_sanit_by_date = sdf.groupby(sdf.index.date).count()['latitude'].rename('sanit_by_date').cumsum()
 
     cdf = crime_df.set_index('date')
-    total_crime_by_date = cdf.groupby(cdf.index.date).count()['latitude']
-    total_crime_by_date = total_crime_by_date.rename('crimes_by_date')
-    total_crime_by_date = total_crime_by_date.cumsum()
+    total_crime_by_date = cdf.groupby(cdf.index.date).count()['latitude'].rename('crimes_by_date').cumsum()
 
     point_crime_counts = {}
 
-    for point, subset in zip(bucket_points, nearby_subsets):
+    for point, subset in zip(bucket_points, nearby_crime_subsets):
         s = subset.set_index('date')
         s = s.groupby(s.index.date).count()['latitude']
-        s = s.rename('count_by_date')
+        s = s.rename('crime_count_by_date')
 
         if len(s) > 0: 
             crime_frac = s / total_crime_by_date
             point_crime_counts[point] = crime_frac
         else:
             point_crime_counts[point] = None
+
+    point_sanit_counts = {}
+    for point, subset in zip(bucket_points, nearby_sanit_subsets):
+        s = subset.set_index('creation_date')
+        s = s.groupby(s.index.date).count()['latitude']
+        s = s.rename('sanit_count_by_date')
+
+        if len(s) > 0: 
+            sanit_frac = s / total_sanit_by_date
+            point_sanit_counts[point] = sanit_frac
+        else:
+            point_sanit_counts[point] = None
 
     def choose_nearest_x(r, points):
         dists = np.array([distance((r['latitude'], r['longitude']), p) for p in points])
@@ -371,9 +386,9 @@ def main(date=datetime.datetime.today(),export=True):
     insp_biz_df['near_x'] = insp_biz_df.apply(lambda r : choose_nearest_x(r, point_crime_counts.keys()), axis=1)
     insp_biz_df['near_y'] = insp_biz_df.apply(lambda r : choose_nearest_y(r, point_crime_counts.keys()), axis=1)
 
-    def get_point_counts(row):
+    def get_point_counts(row, count_dict):
         point = (row['near_x'], row['near_y'])        
-        nearby = point_crime_counts[point]
+        nearby = count_dict[point]
             
         if nearby is None:
             return 0
@@ -383,7 +398,8 @@ def main(date=datetime.datetime.today(),export=True):
         except KeyError:
             return 0
 
-    insp_biz_df['point_crime_count'] = insp_biz_df.apply(get_point_counts, axis=1)
+    insp_biz_df['point_crime_count'] = insp_biz_df.apply(get_point_counts, axis=1, args=(point_crime_counts,))
+    insp_biz_df['point_sanit_count'] = insp_biz_df.apply(get_point_counts, axis=1, args=(point_sanit_counts,))
 
     ###
     ### This code works, but it's really really fucking slow, so maybe don't run it.
