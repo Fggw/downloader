@@ -25,7 +25,6 @@
 \documentclass[final]{beamer}
 
 \usepackage[scale=1.24]{beamerposter} % Use the beamerposter package for laying out the poster
-\usepackage{subfigure}
 
 \usetheme{confposter} % Use the confposter theme supplied with this template
 
@@ -59,6 +58,10 @@
 \usepackage{graphicx}  % Required for including images
 
 \usepackage{booktabs} % Top and bottom rules for tables
+
+\usepackage{exscale}
+
+\usepackage{subfig}
 
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION 
@@ -104,8 +107,8 @@ discover critical violations:
 \begin{itemize}
 \item Aggregate and clean useful data sources.
 \item Build models for probabilities of failure.
-\item Optimize cost of inspection by recommending inspections
-in a probability-ranked order.
+\item Optimize inspection efficiency and social
+cost of undiscovered health risks.
 \end{itemize}
 
 \end{alertblock}
@@ -127,8 +130,8 @@ in a probability-ranked order.
 Sources: City of Chicago Open Data Portal, NOAA. 
 
 \begin{enumerate}
-    \item Collate inspections with businesses for history.
-    \item Process free text columns.
+    \item Pair inspections with business information.
+    \item Process past inspection text to build history.
     \item Bucket spatial data with a grid (see visualizations).
 \end{enumerate}
 
@@ -136,9 +139,12 @@ Sources: City of Chicago Open Data Portal, NOAA.
 
 \vspace{-1in.}
 \begin{block}{Exploration (I)}
-\begin{figure}
-\includegraphics[width=\linewidth]{figures/luke_placeholder.png}
-\caption{Scoring Function}
+\begin{figure}[H]
+  \centering
+    \subfloat{\includegraphics[width = \linewidth]{figures/exploration/exp_1_top.png}}
+
+    \subfloat{\includegraphics[width = \linewidth]{figures/exploration/exp_1_bot.png}}
+  \caption{Inspection Results by Feature}
 \end{figure}
 \end{block}
 
@@ -151,35 +157,33 @@ Sources: City of Chicago Open Data Portal, NOAA.
 
 \begin{column}{\twocolwid} % Begin a column which is two columns wide (column 2)
 
-
-%%% --- Pull up the alert --- %%%
-
 \begin{columns}[t, totalwidth=\twocolwid]
 
 \begin{column}{\onecolwid}\vspace{-.6in.}
-\begin{block}{Exploration (II)}
-Model success curve 1.
+\begin{block}{Results (I): Unsuccessful Models}
+
 \begin{figure}
-\includegraphics[width=\linewidth]{placeholder.jpg}
-\caption{Scoring Function}
+\includegraphics[width=\linewidth]{figures/exploration/rolling_failure_bad.png}
+\caption{Rolling Failure Rate, Poorly Performing Models}
 \end{figure}
 \end{block}
 
 \end{column}
 
 \begin{column}{\onecolwid}\vspace{-.6in.}
-\begin{block}{Results (I)}
-Model success curve 2.
+\begin{block}{Results (II): Successful Models}
 \begin{figure}
-\includegraphics[width=\linewidth]{placeholder.jpg}
-\caption{Scoring Function}
+\includegraphics[width=\linewidth]{figures/exploration/rolling_failure_good.png}
+\caption{Rolling Failure Rate, Well Performing Models}
 \end{figure}
 \end{block}
 \end{column}
-
 \end{columns}
 
-\begin{alertblock}{Choosing a Scoring Function}
+\vspace{-1in}
+\begin{columns}[t, totalwidth=\twocolwid]
+\begin{column}{\onecolwid}
+\begin{alertblock}{Model Scoring: Log Loss}
 
 To measure \textit{rank accuracy} and match the 
 recommendation setting, 
@@ -192,6 +196,25 @@ for $n$ observations, where the $i$th observation is of correct class $y_i \in \
 which our model assigns probability $p_i$.
 
 \end{alertblock}
+\end{column}
+
+\begin{column}{\onecolwid}
+\begin{alertblock}{Model Selection: Rank Quality}
+
+To choose between models, we treated test data
+as undated possible inspections and select the model
+that minimizes
+
+\begin{equation}
+\frac{1}{n} \sum_i^n \mathbf{1}_{y_i = 1} * n_i^{\text{days\_to\_discover}}
+\end{equation}
+
+because the goal is to catch failures as early as 
+possible. This quantity is the average days until true failures are discovered.
+
+\end{alertblock}
+\end{column}
+\end{columns}
 
 \input{spatial_predictors.tex}
 
@@ -205,32 +228,42 @@ which our model assigns probability $p_i$.
 %	CONCLUSION
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Results (II) \& Discussion}
+\begin{block}{Results (III)}
 
-Nunc tempus venenatis facilisis. \textbf{Curabitur suscipit} consequat eros non porttitor. Sed a massa dolor, id ornare enim. Fusce quis massa dictum tortor \textbf{tincidunt mattis}. Donec quam est, lobortis quis pretium at, laoreet scelerisque lacus. Nam quis odio enim, in molestie libero. Vivamus cursus mi at \textit{nulla elementum sollicitudin}.
-
-Maecenas ultricies feugiat velit non mattis. Fusce tempus arcu id ligula varius dictum. 
-\begin{itemize}
-\item Curabitur pellentesque dignissim
-\item Eu facilisis est tempus quis
-\item Duis porta consequat lorem
-\end{itemize}
+Based on our cross-validition process, 
+AdaBoost was selected as the optimal
+model in this setting, as shown
+below in the barchart displaying
+the selection statistic:  
 
 \begin{figure}
-\includegraphics[width=\linewidth]{placeholder.jpg}
-\caption{This is a result curve.}
+\includegraphics[width=\linewidth]{figures/exploration/bar_result.png}
+\caption{Average days to discovery for failing businesses.}
 \end{figure}
+
+A boosted Random Forest model is intuitive in this
+setting, considering that several predictors were
+highly non-linear in the response. All 
+of the best performing models are bagged or 
+boosted decision tree ensemble methods. 
 
 \end{block}
 
 \vspace{-1in.}
 \begin{block}{Next Steps}
 
-LATIN LATIN LATIN LATIN
-LATIN LATIN LATIN LATIN
-LATIN LATIN LATIN LATIN
-LATIN LATIN LATIN LATIN
+Currently the model ranks all possible inspections
+in the testing data, but in practice,
+it would be ranking inspections of all possible
+businesses and itself determining what inspections
+actually take place. The model also does not account for the 
+gradual appearance of complaints over time. \\ 
 
+\vspace{.4in}
+
+As a result, the frequency with which the model
+is reset needs to be tuned, to set the $d$ days
+worth of inspections generated by each ranking.
 \end{block}
 
 
@@ -265,13 +298,13 @@ LATIN LATIN LATIN LATIN
 
 %----------------------------------------------------------------------------------------
 %   REFERENCES
-%----------------------------------------------------------------------------------------
+% %----------------------------------------------------------------------------------------
 
-\begin{block}{References}
-\begin{itemize}
-    \item \href{https://chicago.github.io/food-inspections-evaluation/}{https://chicago.github.io/food-inspections-evaluation/}
-\end{itemize}
-\end{block}
+% \begin{block}{References}
+% \begin{itemize}
+%     \item \href{https://chicago.github.io/food-inspections-evaluation/}{https://chicago.github.io/food-inspections-evaluation/}
+% \end{itemize}
+% \end{block}
 
 %----------------------------------------------------------------------------------------
 
