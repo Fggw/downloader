@@ -1,0 +1,24 @@
+# Setup
+title:        Optimizing Food Inspections in Chicago 
+tagline:      A Final Project for CS109a at Harvard University
+baseurl:      ""
+paginate:     2
+future: true
+
+# About/contact
+authors:
+  - name:       Luke Farewell
+    url:        http://no.website
+  - name:       Jake Gober
+    url:        http://no.website
+  - name:       Samuel Green
+    url:        http://sa.muel.green
+  - name:       Jeremy Welborn
+    url:        http://no.website
+
+# Gems
+gems:
+  - jekyll-paginate
+
+#Others
+markdown: kramdown

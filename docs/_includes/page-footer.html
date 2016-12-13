@@ -1,0 +1,14 @@
+<footer class="site-footer">
+  <span class="site-footer-owner"><a href="{{ site.url }}">{{ site.title }}</a> was created by 
+    {% for author in site.authors %}
+        {% if forloop.last %}
+        and
+        {% endif %}
+        <a href="{{ author.url }}">{{author.name}}</a>
+        {% if forloop.last %}
+        . 
+        {% else %}
+        ,
+        {% endif %}
+    {% endfor %}</span>
+</footer>

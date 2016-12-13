@@ -1,0 +1,18 @@
+---
+layout: default
+title: {{ site.name }}
+---
+
+<div id="home">
+In the pages below, we walk through the process and results 
+of our work on <it>Optimizing Food Inspection Outcomes in Chicago</it>.
+We are grateful to our TF Taylor Names for his advice. 
+
+<h1>Table of Contents</h1>
+<ul class="posts">
+{% assign posts = site.posts | sort:"page" %}
+{% for post in posts%}
+  <li><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
+{% endfor %}
+</ul>
+</div>
