@@ -16,6 +16,10 @@ authors:
   - name:       Jeremy Welborn
     url:        http://no.website
 
+advisor:
+  name:         Taylor Names
+  url:          https://github.com/tnames
+
 # Gems
 gems:
   - jekyll-paginate
