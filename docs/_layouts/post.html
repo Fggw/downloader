@@ -8,11 +8,11 @@ layout: default
 {% assign next = site.posts | where:"page", nextp | first %}
 
 {% if prev and next %}
-<center> <a href="{{prev.url}}"> &#8592; {{prev.title}}</a> | <a href="{{next.url}}">{{next.title}} &#8594;</a> </center>
+<center> <a href="{{prev.url | relative_url}}"> &#8592; {{prev.title}}</a> | <a href="{{next.url | relative_url | prepend:site.baseurl}}">{{next.title}} &#8594;</a> </center>
 {% elsif prev %}
-<center> <a href="{{prev.url}}"> &#8592; {{prev.title}}</a> </center>
+<center> <a href="{{prev.url | relative_url}}"> &#8592; {{prev.title}}</a> </center>
 {% elsif next %}
-<center> <a href="{{next.url}}"> {{next.title}} &#8594;</a> </center>
+<center> <a href="{{next.url | relative_url}}"> {{next.title}} &#8594;</a> </center>
 {% endif %}
 
 
@@ -24,10 +24,10 @@ layout: default
 
 
 {% if prev and next %}
-<center> <a href="{{prev | relative_url | prepend:site.baseurl}}"> &#8592; {{prev.title}}</a> | <a href="{{next | relative_url | prepend:site.baseurl}}">{{next.title}} &#8594;</a> </center>
+<center> <a href="{{prev.url | relative_url }}"> &#8592; {{prev.title}}</a> | <a href="{{next | relative_url | prepend:site.baseurl}}">{{next.title}} &#8594;</a> </center>
 {% elsif prev %}
-<center> <a href="{{prev | relative_url | prepend:site.baseurl}}"> &#8592; {{prev.title}}</a> </center>
+<center> <a href="{{prev.url | relative_url }}"> &#8592; {{prev.title}}</a> </center>
 {% elsif next %}
-<center> <a href="{{next | relative_url | prepend:site.baseurl}}"> {{next.title}} &#8594;</a> </center>
+<center> <a href="{{next.url | relative_url }}"> {{next.title}} &#8594;</a> </center>
 {% endif %}
 
