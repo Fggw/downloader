@@ -1,7 +1,7 @@
 # Setup
 title:        Optimizing Food Inspections in Chicago 
 tagline:      A Final Project for CS109a at Harvard University
-baseurl:      "/foodinspections/"
+baseurl:      "/foodinspections"
 paginate:     2
 future: true
 
