@@ -98,7 +98,7 @@ def build_sanitation_query(start):
     return "{}?$where=creation_date>='{}'&$limit=10000000".format(SANITATION_ENDPOINT, start.isoformat())
 
 def get_loc(row):
-    return row['latitude'], row['longitude']
+    return row['longitude'], row['latitude']
 
 def distance(d1, d2):
     lat1, lon1 = d1

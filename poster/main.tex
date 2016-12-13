@@ -59,6 +59,10 @@
 
 \usepackage{booktabs} % Top and bottom rules for tables
 
+\usepackage{exscale}
+
+\usepackage{subfig}
+
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION 
 %----------------------------------------------------------------------------------------
@@ -67,7 +71,9 @@
 
 \author{Luke Farewell, Jake Gober, Sam Green, Jeremy Welborn} % Author(s)
 
-\institute{Computer Science 109a, Harvard University} % Institution(s)
+\institute{Computer Science 109a / Statistics 121a, Harvard University} % Institution(s)
+
+% \logo{figures/SEASLogo_CMYK_Centered.png}
 
 %----------------------------------------------------------------------------------------
 
@@ -93,12 +99,16 @@
 
 \begin{alertblock}{Objectives}
 
-This research project explores modeling outcomes of health inspections of 
-food establishments in the city of Chicago. We had the following goals:
+Chicago's Department of Public Health is responsible for 
+inspecting 15,000 food establishments across the city. 
+Our goal was to reduce the amount of time required to 
+discover critical violations: 
+
 \begin{itemize}
-\item Design a model that can be portably applied to new data.
-\item Define a reasonable cost function. 
-\item Successfully predict inspection outcomes to optimize the social costs of inspections
+\item Aggregate and clean useful data sources.
+\item Build models for probabilities of failure.
+\item Optimize inspection efficiency and social
+cost of undiscovered health risks.
 \end{itemize}
 
 \end{alertblock}
@@ -107,30 +117,37 @@ food establishments in the city of Chicago. We had the following goals:
 %	INTRODUCTION
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Introduction}
+\begin{block}{Data: Sources and Cleaning}
 
-The City of Chicago's Department of Public Health is responsible for 
-inspecting upwards of 15,000 establishments that sell food within
-the city limits. Previous work published by the City of Chicago's
-advanced analytics team showed that using historical inspection
-data and a variety of other information helped predict establishments
-that were at the highest risk of critical violations. That previous
-work is already several years old. In this project, we aimed
-to replicate the results of the previous study on an 
-updated dataset and, where possible, to include new, potentially
-more predictive data to optimize the inspection process further.
+% \setlength\tabcolsep{1.2in}
+\def\arraystretch{1.5}
+\begin{tabular}{|c| c|}
+\hline
+\textbf{Food Inspections} & \textbf{Business Activities} \\ \hline
+\textbf{Weather} & \textbf{Crime Reports} \\ \hline
+\textbf{Sanitation Complaints} & \textbf{Business Location}\\ \hline
+\end{tabular}\vspace{0.2in.}
+Sources: City of Chicago Open Data Portal, NOAA. 
 
-This project is an example of data science applied for the public good.
-Citizens are less likely to be exposed to critically unsafe food establishments,
-while inspectors are able to work more effectively.   
+\begin{enumerate}
+    \item Pair inspections with business information.
+    \item Process past inspection text to build history.
+    \item Bucket spatial data with a grid (see visualizations).
+\end{enumerate}
+
 \end{block}
 
-%------------------------------------------------
+\vspace{-1in.}
+\begin{block}{Exploration (I)}
+\begin{figure}[H]
+  \centering
+    \subfloat{\includegraphics[width = \linewidth]{figures/exploration/exp_1_top.png}}
 
-\begin{figure}
-\includegraphics[width=0.8\linewidth]{placeholder.jpg}
-\caption{Figure caption}
+    \subfloat{\includegraphics[width = \linewidth]{figures/exploration/exp_1_bot.png}}
+  \caption{Inspection Results by Feature}
 \end{figure}
+\end{block}
+
 
 %----------------------------------------------------------------------------------------
 
@@ -140,145 +157,66 @@ while inspectors are able to work more effectively.
 
 \begin{column}{\twocolwid} % Begin a column which is two columns wide (column 2)
 
-% \begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column
+\begin{columns}[t, totalwidth=\twocolwid]
 
-
-\begin{column}{\twocolwid}\vspace{-.6in} % The first column within column 2 (column 2.1)
-
-%----------------------------------------------------------------------------------------
-%	Data Collection
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Data Collection}
-
-% The following materials were required to complete the research:
-
-% \begin{itemize}
-% \item Curabitur pellentesque dignissim
-% \item Eu facilisis est tempus quis
-% \item Duis porta consequat lorem
-% \item Eu facilisis est tempus quis
-% \end{itemize}
-
-% The materials were prepared according to the steps outlined below:
-
-% \begin{enumerate}
-% \item Curabitur pellentesque dignissim
-% \item Eu facilisis est tempus quis
-% \item Duis porta consequat lorem
-% \item Curabitur pellentesque dignissim
-% \end{enumerate}
-
+\begin{column}{\onecolwid}\vspace{-.6in.}
+\begin{block}{Results (I): Unsuccessful Models}
 
 \begin{figure}
-\includegraphics[width=0.8\linewidth]{figures/inspection_map.png}
-\caption{Spacial Visualization of Inspection Results}
+\includegraphics[width=\linewidth]{figures/exploration/rolling_failure_bad.png}
+\caption{Rolling Failure Rate, Poorly Performing Models}
 \end{figure}
-
 \end{block}
 
-%----------------------------------------------------------------------------------------
+\end{column}
 
-\end{column} % End of column 2.1
-
-% \begin{column}{\twocolwid}\vspace{-.6in} % The second column within column 2 (column 2.2)
-
-% %----------------------------------------------------------------------------------------
-% %	METHODS
-% %----------------------------------------------------------------------------------------
-
-% \begin{block}{Methods}
-
-% Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed laoreet accumsan mattis. Integer sapien tellus, auctor ac blandit eget, sollicitudin vitae lorem. Praesent dictum tempor pulvinar. Suspendisse potenti. Sed tincidunt varius ipsum, et porta nulla suscipit et. Etiam congue bibendum felis, ac dictum augue cursus a. \textbf{Donec} magna eros, iaculis sit amet placerat quis, laoreet id est. In ut orci purus, interdum ornare nibh. Pellentesque pulvinar, nibh ac malesuada accumsan, urna nunc convallis tortor, ac vehicula nulla tellus eget nulla. Nullam lectus tortor, \textit{consequat tempor hendrerit} quis, vestibulum in diam. Maecenas sed diam augue.
-
-% \end{block}
-
-% %----------------------------------------------------------------------------------------
-
-% % \end{column} % End of column 2.2
-
-% \end{column} % End of the split of column 2 - any content after this will now take up 2 columns width
-
-%----------------------------------------------------------------------------------------
-%	IMPORTANT RESULT
-%----------------------------------------------------------------------------------------
-
-\begin{alertblock}{Important Result}
-
-Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed commodo molestie porta. Sed ultrices scelerisque sapien ac commodo. Donec ut volutpat elit.
-`
-\end{alertblock} 
-
-%----------------------------------------------------------------------------------------
-
-\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column again
-
-\begin{column}{\onecolwid} % The first column within column 2 (column 2.1)
-
-%----------------------------------------------------------------------------------------
-%	MATHEMATICAL SECTION
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Modeling Process}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-  
-\begin{equation}
-E = mc^{2}
-\label{eqn:Einstein}
-\end{equation}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-
-\begin{equation}
-\cos^3 \theta =\frac{1}{4}\cos\theta+\frac{3}{4}\cos 3\theta
-\label{eq:refname}
-\end{equation}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-
-\end{block}
-
-%----------------------------------------------------------------------------------------
-
-\end{column} % End of column 2.1
-
-\begin{column}{\onecolwid} % The second column within column 2 (column 2.2)
-
-%----------------------------------------------------------------------------------------
-%	RESULTS
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Results}
-
+\begin{column}{\onecolwid}\vspace{-.6in.}
+\begin{block}{Results (II): Successful Models}
 \begin{figure}
-\includegraphics[width=0.8\linewidth]{placeholder.jpg}
-\caption{Figure caption}
+\includegraphics[width=\linewidth]{figures/exploration/rolling_failure_good.png}
+\caption{Rolling Failure Rate, Well Performing Models}
 \end{figure}
-
-Nunc tempus venenatis facilisis. Curabitur suscipit consequat eros non porttitor. Sed a massa dolor, id ornare enim:
-
-\begin{table}
-\vspace{2ex}
-\begin{tabular}{l l l}
-\toprule
-\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
-\midrule
-Treatment 1 & 0.0003262 & 0.562 \\
-Treatment 2 & 0.0015681 & 0.910 \\
-Treatment 3 & 0.0009271 & 0.296 \\
-\bottomrule
-\end{tabular}
-\caption{Table caption}
-\end{table}
-
 \end{block}
+\end{column}
+\end{columns}
 
-%----------------------------------------------------------------------------------------
+\vspace{-1in}
+\begin{columns}[t, totalwidth=\twocolwid]
+\begin{column}{\onecolwid}
+\begin{alertblock}{Model Scoring: Log Loss}
 
-\end{column} % End of column 2.2
+To measure \textit{rank accuracy} and match the 
+recommendation setting, 
+we selected \textbf{log loss} as our scoring function.
 
-\end{columns} % End of the split of column 2
+\begin{equation}
+-\frac{1}{n} \sum_{1}^{n} [y_i \log(p_i)-(1-y_i)\log(1-p_i)]
+\end{equation}
+for $n$ observations, where the $i$th observation is of correct class $y_i \in \{0,1\}$ 
+which our model assigns probability $p_i$.
+
+\end{alertblock}
+\end{column}
+
+\begin{column}{\onecolwid}
+\begin{alertblock}{Model Selection: Rank Quality}
+
+To choose between models, we treated test data
+as undated possible inspections and select the model
+that minimizes
+
+\begin{equation}
+\frac{1}{n} \sum_i^n \mathbf{1}_{y_i = 1} * n_i^{\text{days\_to\_discover}}
+\end{equation}
+
+because the goal is to catch failures as early as 
+possible. This quantity is the average days until true failures are discovered.
+
+\end{alertblock}
+\end{column}
+\end{columns}
+
+\input{spatial_predictors.tex}
 
 \end{column} % End of the second column
 
@@ -290,50 +228,56 @@ Treatment 3 & 0.0009271 & 0.296 \\
 %	CONCLUSION
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Conclusion}
+\begin{block}{Results (III)}
 
-Nunc tempus venenatis facilisis. \textbf{Curabitur suscipit} consequat eros non porttitor. Sed a massa dolor, id ornare enim. Fusce quis massa dictum tortor \textbf{tincidunt mattis}. Donec quam est, lobortis quis pretium at, laoreet scelerisque lacus. Nam quis odio enim, in molestie libero. Vivamus cursus mi at \textit{nulla elementum sollicitudin}.
+Based on our cross-validition process, 
+AdaBoost was selected as the optimal
+model in this setting, as shown
+below in the barchart displaying
+the selection statistic:  
 
-\end{block}
+\begin{figure}
+\includegraphics[width=\linewidth]{figures/exploration/bar_result.png}
+\caption{Average days to discovery for failing businesses.}
+\end{figure}
 
-%----------------------------------------------------------------------------------------
-%	ADDITIONAL INFORMATION
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Future Work and Open Questions}
-
-Maecenas ultricies feugiat velit non mattis. Fusce tempus arcu id ligula varius dictum. 
-\begin{itemize}
-\item Curabitur pellentesque dignissim
-\item Eu facilisis est tempus quis
-\item Duis porta consequat lorem
-\end{itemize}
-
-\end{block}
-
-%----------------------------------------------------------------------------------------
-%	REFERENCES
-%----------------------------------------------------------------------------------------
-
-\begin{block}{References}
-
-\nocite{*} % Insert publications even if they are not cited in the poster
-\small{\bibliographystyle{unsrt}
-\bibliography{sample}\vspace{0.75in}}
+A boosted Random Forest model is intuitive in this
+setting, considering that several predictors were
+highly non-linear in the response. All 
+of the best performing models are bagged or 
+boosted decision tree ensemble methods. 
 
 \end{block}
+
+\vspace{-1in.}
+\begin{block}{Next Steps}
+
+Currently the model ranks all possible inspections
+in the testing data, but in practice,
+it would be ranking inspections of all possible
+businesses and itself determining what inspections
+actually take place. The model also does not account for the 
+gradual appearance of complaints over time. \\ 
+
+\vspace{.4in}
+
+As a result, the frequency with which the model
+is reset needs to be tuned, to set the $d$ days
+worth of inspections generated by each ranking.
+\end{block}
+
 
 %----------------------------------------------------------------------------------------
 %	ACKNOWLEDGEMENTS
 %----------------------------------------------------------------------------------------
 
-\setbeamercolor{block title}{fg=red,bg=white} % Change the block title color
+% \setbeamercolor{block title}{fg=red,bg=white} % Change the block title color
 
-\begin{block}{Acknowledgements}
+% \begin{block}{Acknowledgements}
 
-\small{\rmfamily{Nam mollis tristique neque eu luctus. Suspendisse rutrum congue nisi sed convallis. Aenean id neque dolor. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.}} \\
+% \small{\rmfamily{Nam mollis tristique neque eu luctus. Suspendisse rutrum congue nisi sed convallis. Aenean id neque dolor. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.}} \\
 
-\end{block}
+% \end{block}
 
 %----------------------------------------------------------------------------------------
 %	CONTACT INFORMATION
@@ -352,11 +296,15 @@ Maecenas ultricies feugiat velit non mattis. Fusce tempus arcu id ligula varius 
 
 \end{alertblock}
 
-\begin{center}
-\begin{tabular}{ccc}
-\includegraphics[width=0.8\linewidth]{figures/SEASLogo_CMYK_Centered.png}
-\end{tabular}
-\end{center}
+%----------------------------------------------------------------------------------------
+%   REFERENCES
+% %----------------------------------------------------------------------------------------
+
+% \begin{block}{References}
+% \begin{itemize}
+%     \item \href{https://chicago.github.io/food-inspections-evaluation/}{https://chicago.github.io/food-inspections-evaluation/}
+% \end{itemize}
+% \end{block}
 
 %----------------------------------------------------------------------------------------
 
