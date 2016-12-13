@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title:  "Conclusion"
 published: true
 page: 6

@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: post
 title:  "Data Exploration"
 published: true
 page: 3
