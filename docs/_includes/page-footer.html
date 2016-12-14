@@ -1,0 +1,10 @@
+<footer class="site-footer">
+  <span class="site-footer-owner"><a href="{{ site.url}}{{site.baseurl}}/">{{ site.title }}</a> was created for CS109a by: 
+    <ul> 
+    {% for author in site.authors %}
+        <li><a href="{{ author.url }}">{{author.name}}</a></li>
+    {% endfor %}
+    </ul>
+
+  <span class="site-footer-owner">We were advised by <a href="{{site.advisor.url}}">{{site.advisor.name}}.
+</footer>

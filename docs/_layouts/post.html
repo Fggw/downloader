@@ -1,0 +1,32 @@
+---
+layout: default
+---
+{% assign prevp = page.page | to_integer | minus: 1 %}
+{% assign nextp = page.page | to_integer | plus: 1 %}
+
+{% assign prev = site.posts | where:"page", prevp | first %}
+{% assign next = site.posts | where:"page", nextp | first %}
+
+{% if prev and next %}
+<center> <a href="{{prev.url | relative_url}}"> &#8592; {{prev.title}}</a> | <a href="{{next.url | relative_url }}">{{next.title}} &#8594;</a> </center>
+{% elsif prev %}
+<center> <a href="{{prev.url | relative_url}}"> &#8592; {{prev.title}}</a> </center>
+{% elsif next %}
+<center> <a href="{{next.url | relative_url}}"> {{next.title}} &#8594;</a> </center>
+{% endif %}
+
+
+<h1>{{ page.title }}</h1>
+
+{{ content }}
+
+<br>
+
+{% if prev and next %}
+<center> <a href="{{prev.url | relative_url }}"> &#8592; {{prev.title}}</a> | <a href="{{next.url | relative_url }}">{{next.title}} &#8594;</a> </center>
+{% elsif prev %}
+<center> <a href="{{prev.url | relative_url }}"> &#8592; {{prev.title}}</a> </center>
+{% elsif next %}
+<center> <a href="{{next.url | relative_url }}"> {{next.title}} &#8594;</a> </center>
+{% endif %}
+

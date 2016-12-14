@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  
+  <head>
+  <meta charset="UTF-8">
+  <title>Optimizing Food Inspections in Chicago</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/foodinspections/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/foodinspections/css/cayman.css">
+</head>
+
+  <body>
+    <section class="page-header">
+  <h1 class="project-name">Optimizing Food Inspections in Chicago</h1>
+  <h2 class="project-tagline">A Final Project for CS109a at Harvard University</h2>
+  <a href="http://github.com/fggw/foodinspections/" class="btn">View on GitHub</a>
+</section>
+
+    <section class="main-content">
+      
+      
+
+
+
+
+
+
+<center> <a href="/foodinspections/2016/12/12/introduction.html"> &#8592; Introduction</a> | <a href="/foodinspections/2016/12/12/data-exploration.html">Data Exploration &#8594;</a> </center>
+
+
+
+<h1>Data Collection and Cleaning</h1>
+
+<p>We began the project by deciding what data to use and where it could be sourced.
+We identified the following data sets and their sources:</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>Dataset</strong></td>
+      <td><strong>Source</strong></td>
+    </tr>
+    <tr>
+      <td>Food Inspections</td>
+      <td><a href="https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5">City of Chicago Data Portal</a></td>
+    </tr>
+    <tr>
+      <td>Business Licenses</td>
+      <td><a href="https://data.cityofchicago.org/Community-Economic-Development/Business-Licenses/r5kz-chrr">City of Chicago Data Portal</a></td>
+    </tr>
+    <tr>
+      <td>Crime Reports</td>
+      <td><a href="https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2">City of Chicago Data Portal</a></td>
+    </tr>
+    <tr>
+      <td>311 Service Requests – Sanitation Code Complaints</td>
+      <td><a href="https://data.cityofchicago.org/Service-Requests/311-Service-Requests-Sanitation-Code-Complaints/me59-5fac">City of Chicago Data Portal</a></td>
+    </tr>
+    <tr>
+      <td>Weather</td>
+      <td><a href="https://www.ncdc.noaa.gov/cdo-web/datasets">NOAA’s Daily Summaries</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>After identifying the datasets, we wrote Python code to download and collate parts of the data. We wrote one
+script, available here, that would pull all of the inspections in a date range, identify all of the businesses
+that were inspected in that range, find all of the licenses corresponding to that business (since an inspection
+is related only to one license, but each business might have several), and then hot-encoded all of the categorical
+variables.</p>
+
+<p>We also wrote a script that retrieved crime and sanitation data and built a grid into which to bucket counts 
+of crime and sanitation events. We made this decision for computational resource reasons; while ideally we would
+have a set a radius and associated every inspection with the normalized number of crimes and sanitation complaints
+within that radius, this was computationally infeasible given the number of inspections, crime reports, and sanitation
+complaints in the date range of interest. As a result, we built a grid based on the range of latitude and longitudes, 
+associated every crime and sanitation complaint with one rectangle on the grid, building counts in each rectangle on
+the map. We then associated each inspection with its nearest rectangle center’s crime and sanitation count. While
+this system is imperfect, it was clear from visualization (see next page) that it was a useful proxy for 
+the socioeconomic picture of a certain neighborhood.</p>
+
+<p>After completing the data cleaning process, a single observation in the dataset looked like this:</p>
+
+<p>The full list of variables that we built was:</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td><strong>Variable Name</strong></td>
+      <td><strong>Meaning</strong></td>
+    </tr>
+    <tr>
+      <td>Food Inspections</td>
+      <td><a href="https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5">City of Chicago Data Portal</a></td>
+    </tr>
+    <tr>
+      <td>Business Licenses</td>
+      <td><a href="https://data.cityofchicago.org/Community-Economic-Development/Business-Licenses/r5kz-chrr">City of Chicago Data Portal</a></td>
+    </tr>
+    <tr>
+      <td>Crime Reports</td>
+      <td><a href="https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-present/ijzp-q8t2">City of Chicago Data Portal</a></td>
+    </tr>
+    <tr>
+      <td>311 Service Requests – Sanitation Code Complaints</td>
+      <td><a href="https://data.cityofchicago.org/Service-Requests/311-Service-Requests-Sanitation-Code-Complaints/me59-5fac">City of Chicago Data Portal</a></td>
+    </tr>
+    <tr>
+      <td>Weather</td>
+      <td><a href="https://www.ncdc.noaa.gov/cdo-web/datasets">NOAA’s Daily Summaries</a></td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+<br>
+
+
+<center> <a href="/foodinspections/2016/12/12/introduction.html"> &#8592; Introduction</a> | <a href="/foodinspections/foodinspections/This%20is%20where%20we're%20going%20to%20walk%20through%20some%20data%20exploration.%0AThis%20is%20a%20new%20sentence%20to%20trigger%20a%20re-build.">Data Exploration &#8594;</a> </center>
+
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="http://localhost:4000/foodinspections/">Optimizing Food Inspections in Chicago</a> was created for CS109a by: 
+    <ul> 
+    
+        <li><a href="http://no.website">Luke Farewell</a></li>
+    
+        <li><a href="http://no.website">Jake Gober</a></li>
+    
+        <li><a href="http://sa.muel.green">Samuel Green</a></li>
+    
+        <li><a href="http://no.website">Jeremy Welborn</a></li>
+    
+    </ul>
+
+  <span class="site-footer-owner">We were advised by <a href="https://github.com/tnames">Taylor Names.
+</footer>
+
+
+    </section>
+
+  </body>
+</html>
