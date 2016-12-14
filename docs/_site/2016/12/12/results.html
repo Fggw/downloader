@@ -9,6 +9,11 @@
   <link rel="stylesheet" href="/foodinspections/css/normalize.css">
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
   <link rel="stylesheet" href="/foodinspections/css/cayman.css">
+
+    <script type="text/javascript" async
+      src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
 </head>
 
   <body>
@@ -33,13 +38,29 @@
 
 <h1>Results and Analysis</h1>
 
-<p>This is where we’re going to talk about the results we found and analyze those results.</p>
+<p>After implementing the processes described above, we found that AdaBoost (with 100 estimators) performed 
+with the lowest average number of failure days, at 110 failure days.  This is about 40 failure days 
+fewer that the actual order of inspections, which resulted in about 150 fail days. Other models like 
+random forest with 45 features and adaboost with 50 estimators also performed well, averaging about 112 
+fail days.  In analyzing this result, we were not surprised:  a boosted random forest is intuitive in 
+this setting, considering several predictors were highly non-linear in the response.  In fact, looking 
+at all of the best-performing models, they were either bagged or boosted tree ensemble methods.</p>
+
+<p>Ultimately, we satisfied the objective we set out to accomplish: we were able to output a ranked list of 
+establishments for inspectors to inspect, in order, such that the number of days it takes them to 
+inspect a failed establishment is lower on average than if they were randomly inspecting restaurants.<br />
+Not only did we beat the baseline random inspection order by about 40 failure days, but we also beat the 
+model that the city of chicago implemented.  In fact, they claimed to have improved inspection order by 
+7 failure days.  Our model was thus 33 failure days or so better than Chicago’s model. We realize that 
+this strong of an improvement is almost too good–this means that there are likely issues hidden in out 
+model or over process.</p>
+
 
 
 <br>
 
 
-<center> <a href="/foodinspections/2016/12/12/modeling.html"> &#8592; Modeling</a> | <a href="/foodinspections/foodinspections/%3C!DOCTYPE%20html%3E%0A%3Chtml%20lang=%22en-us%22%3E%0A%20%20%0A%20%20%3Chead%3E%0A%20%20%3Cmeta%20charset=%22UTF-8%22%3E%0A%20%20%3Ctitle%3EOptimizing%20Food%20Inspections%20in%20Chicago%3C/title%3E%0A%20%20%3Cmeta%20name=%22viewport%22%20content=%22width=device-width,%20initial-scale=1%22%3E%0A%20%20%3Cmeta%20name=%22theme-color%22%20content=%22#157878%22%3E">Conclusion &#8594;</a> </center>
+<center> <a href="/foodinspections/2016/12/12/modeling.html"> &#8592; Modeling</a> | <a href="/foodinspections/2016/12/12/conclusion.html">Conclusion &#8594;</a> </center>
 
 
 

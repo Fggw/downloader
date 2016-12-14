@@ -267,6 +267,12 @@ def main(date=datetime.datetime.today(),export=True):
 
     insp_biz_df = insp_biz_df.join(grouped, on=['account_number', 'site_number'])
 
+    """
+    CRIME AND SANITATION LOGIC MOVED TO "build_crime_sanit.py" and post-processed.
+    """
+
+    """
+
     sanitation_url = build_sanitation_query(start_date)
     try:
         sanitation_data = make_request(sanitation_url).json()
@@ -298,7 +304,7 @@ def main(date=datetime.datetime.today(),export=True):
     # insp_biz_df['sanitation_by_location'] = insp_biz_df.apply(lambda r: count_incidents_nearby(r, sanitation_df),axis=1)
     
     # insp_biz_df = insp_biz_df.join(sanit_df, on=['police_district'])
-    insp_biz_df = pd.merge(insp_biz_df, sanit_df, left_on=['inspection_date', 'police_district'], right_on=['creation_date', 'police_district'], how='left')
+    # insp_biz_df = pd.merge(insp_biz_df, sanit_df, left_on=['inspection_date', 'police_district'], right_on=['creation_date', 'police_district'], how='left')
 
     crime_url = build_crime_query(start_date)
     try:
@@ -400,11 +406,8 @@ def main(date=datetime.datetime.today(),export=True):
 
     insp_biz_df['point_crime_count'] = insp_biz_df.apply(get_point_counts, axis=1, args=(point_crime_counts,))
     insp_biz_df['point_sanit_count'] = insp_biz_df.apply(get_point_counts, axis=1, args=(point_sanit_counts,))
+    """
 
-    ###
-    ### This code works, but it's really really fucking slow, so maybe don't run it.
-    ###
-    #insp_biz_df['crimes_by_location'] = insp_biz_df.apply(lambda r: count_crimes_nearby(r, crime_df),axis=1)
     import os
     if export:
         insp_biz_df.to_csv('DOWNLOADED_DATA.csv', index=False)
