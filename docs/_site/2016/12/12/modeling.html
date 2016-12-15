@@ -41,19 +41,9 @@
 <p>After developing some intuition with exploratory
 analysis, we moved on to the modeling process.</p>
 
-<h3 id="baseline">Baseline</h3>
+<p>On the surface, it seemed that this was a simple problem of building a best predictor. Given some data, can we classify an inspection as a sure fail. We took this approach at first, building a baseline and several tuned models to make classfications. But accuracy, especially accuracy on true fails, was intractable and tought to improve.</p>
 
-<p>At first, it seemed that building a model that could take in the attributes of an establishment and 
-predict whether or not it would fail was the optimal goal. However, given the nature 
-of the problem we are trying to solve, 
-prediction wasn’t the best objective to consider.</p>
-
-<p>We aim to reduce the amount of time until a failed establishment is discovered. 
-As a result, we decided to build ranking models so that inspectors could in practice
-inspect from highest to lowest probability of failure.</p>
-
-<p>We used log loss to select best performing 
-models.</p>
+<p>Prediction, however, was not the problem here. The methodology by which models were used and not the models themselves is key here: we wish to send inspectors to the most likely fails first and less likely fails as they become available. This sort of ‘ranking’ could be captured in the log loss criterion (the negative log likelihood in a 2-class or Bernoulli setting):</p>
 
 <script type="math/tex; mode=display">l(p) = -\frac{1}{n} \sum y_i \log(p_i) - (1-y_i)\log(1 - p_i)</script>
 
@@ -64,14 +54,13 @@ penalizes a case in which a model gave an establishment a
 high probability of passing an inspection when it actually 
 ends up failing.</p>
 
-<p>Since this was more nuanced than a problem of prediction, an appropriate scoring approach (e.g. log loss) was more important than selecting a single optimal model. We considered several classes of classifiers - logistic regression, linear and quadratic discriminant analysis, bagging approaches like random forests, boosting approaches like AdaBoost, and so on. To select a single ‘best’ model per class, we ran 5-fold cross-validation to search exhaustively over and score by log loss a range of reasonable sets of hyper-parameters, ultimately arriving at a best model per model class.</p>
+<p>Since this was more nuanced than a problem of prediction, an appropriate scoring approach (e.g. log loss) was more important than selecting a single optimal model. We considered several classes of classifiers - logistic regression, linear and quadratic discriminant analysis, bagging approaches like random forests, boosting approaches like AdaBoost, and so on - but let the data decide which would lend itself best to the task. To select a single ‘best’ model per class, we ran 5-fold cross-validation to search exhaustively over and score by log loss a range of reasonable sets of hyper-parameters, ultimately arriving at a best model per model class.</p>
 
 <p>While we use a different metric (which we will introduce on the next page)
 to evaluate the optimization performance of the system in practice, we didn’t feel that
 this metric was reliable in cross-validation because all of the inspections occured
 on fixed dates, so we couldn’t treat the model as making recommendations about
 when they should occur.</p>
-
 
 
 <br>
