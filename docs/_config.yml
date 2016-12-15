@@ -8,14 +8,15 @@ future: true
 # About/contact
 authors:
   - name:       Luke Farewell
-    url:        http://no.website
+    url:        http://github.com/lfarewell
   - name:       Jake Gober
-    url:        http://no.website
+    url:        http://github.com/jgober96
   - name:       Samuel Green
     url:        http://sa.muel.green
   - name:       Jeremy Welborn
-    url:        http://no.website
-
+    url:        http://github.com/jerwelborn
+  - name:       Intern
+    url:        http://endless.horse
 advisor:
   name:         Taylor Names
   url:          https://github.com/tnames
