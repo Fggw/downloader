@@ -32,7 +32,7 @@
 
 
 
-<center> <a href="/foodinspections/2016/12/12/data-exploration.html"> &#8592; Data Exploration</a> | <a href="/foodinspections/2016/12/12/results.html"> &#8594;</a> </center>
+<center> <a href="/foodinspections/2016/12/12/data-exploration.html"> &#8592; Data Exploration</a> | <a href="/foodinspections/2016/12/12/results.html">Model Selection and Results &#8594;</a> </center>
 
 
 
@@ -66,41 +66,18 @@ ends up failing.</p>
 
 <p>Since this was more nuanced than a problem of prediction, an appropriate scoring approach (e.g. log loss) was more important than selecting a single optimal model. We considered several classes of classifiers - logistic regression, linear and quadratic discriminant analysis, bagging approaches like random forests, boosting approaches like AdaBoost, and so on. To select a single ‘best’ model per class, we ran 5-fold cross-validation to search exhaustively over and score by log loss a range of reasonable sets of hyper-parameters, ultimately arriving at a best model per model class.</p>
 
-<p>Given our objective of the project, we decided to select models, via cross validation, based on a metric 
-we call “failure days.”  Failure days represent the aggregated number of days it takes, from the start 
-of the first inspection in a given time frame, to inspect (and fail) a health-violating establishment.<br />
-For illustration, note the following simple example.  Imagine an inspector is inspecting 10 restaurants 
-in the first week of february.  It turns out that 2 of the establishments end up failing while the rest 
-pass.  If the inspector inspected the failed establishments on day 2 and day 3 of the week, the failure 
-days would be 2 + 3 = 5 failure days.  However, if the inspector inspected the failed establishments on 
-day 4 and day 6 of the week, the failure days would be 4 + 6 = 10.  Thus, in this simple case, we would 
-select the model that resulted in 5 failure days rather than the one that resulted in 10 failure days.<br />
-By choosing the model that minimizes failure days,we get a ranked list that enables inspectors to 
-inspect, in a given time frame, establishments likely to fail sooner than ones likely to pass.</p>
-
-<p>One consideration that proved important in the model building process was the following:  one has to 
-think about how often inspectors should receive a new list of ranked establishments to inspect.  In 
-other words, should inspectors receive a new ranked list of establishments every week, month, or three 
-months?  Is there an optimal time interval for which a new list should be generated? These were 
-considerations we had to take into account in the model scoring phase of our process.  We ended up not 
-picking a regeneration interval for the ranked lists–rather, we just used log loss to rank the entire 
-test set at once.  In future projects, it may be telling to test different list regeneration intervals 
-to see if our overall results could be improved.</p>
-
-<p>In summary, in the model scoring phase, our models feed lists of probabilities to a log loss 
-function–these probabilities represent the likelihood of an establishment to fail based on a set of 
-different predictors.  Log loss then scores the models, strongly penalizing cases of low probability of 
-failure if the result of the inspection turns out to be actually be a failure. Each inspection in the 
-list is then officially assigned a “1” or “0” for “pass” or “fail.” Finally, we use these lists or 
-ordered passes and fails to measure the number of failure days (using cross validation) of each model, 
-which is the aggregate number of days from the first day of inspections to each failed inspection.</p>
+<p>While we use a different metric (which we will introduce on the next page)
+to evaluate the optimization performance of the system in practice, we didn’t feel that
+this metric was reliable in cross-validation because all of the inspections occured
+on fixed dates, so we couldn’t treat the model as making recommendations about
+when they should occur.</p>
 
 
 
 <br>
 
 
-<center> <a href="/foodinspections/2016/12/12/data-exploration.html"> &#8592; Data Exploration</a> | <a href="/foodinspections/2016/12/12/results.html"> &#8594;</a> </center>
+<center> <a href="/foodinspections/2016/12/12/data-exploration.html"> &#8592; Data Exploration</a> | <a href="/foodinspections/2016/12/12/results.html">Model Selection and Results &#8594;</a> </center>
 
 
 
