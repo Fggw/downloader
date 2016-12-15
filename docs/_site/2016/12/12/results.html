@@ -74,25 +74,72 @@ Results from this are shown below:</p>
 
 <p><img src="/foodinspections/images/RollingFailRate.png" alt="Rolling" /></p>
 
-<p>As we can see above, AdaBoost is most effective at making failure rates highest at the 
-beginning of the window, meaning that it identifies the most failures, and then the lowest
-rate of failures at the end, meaning that it has eliminated the most failures from the 
-testing pool already. This is what we would hope to observe in the testing phrase, though
+<p>As we can see above, AdaBoost maximizes failure rates
+at the beginning of the simulation, compared to 
+other models. It also minimizes the failure rate
+at the end, meaning that it has eliminated the most 
+failures from the 
+testing pool already.</p>
+
+<p>This is what we would hope to observe in the testing phrase, though
 in practice we would hope to see that the model identifies a higher rate of failure at a 
 consistent rate. This visualization and simulation process supports the conclusion
 that our model would result in an improvement over the City’s current process.</p>
 
-<p>Ultimately, we satisfied the objective we set out to accomplish: we were able to output a ranked list of 
-establishments for inspectors to inspect, in order, such that the number of days it takes them to 
-inspect a failed establishment is lower on average than if they were randomly inspecting restaurants.<br />
-Not only did we beat the baseline random inspection order by about 40 failure days, but we also beat the 
-model that the City of Chicago implemented.  In fact, they claimed to have improved inspection order by 
-7 failure days.  Our model was thus 33 failure days or so better than Chicago’s model. We realize that 
-this strong of an improvement is almost too good–this means that there are likely issues hidden in out 
-model or over process.</p>
+<p>AdaBoost reduced the number of days it 
+took to inspect establishments that failed by 44 days, at 
+108 vs. 152 in the actual 2016 data.</p>
 
-<p>Questions that would remain would be: how frequently should the model re-rank possible
-inspections? How many inspections should be optimally recommended at a time?</p>
+<h2 id="possible-drawbacks--flaws">Possible Drawbacks &amp; Flaws</h2>
+
+<p>The 
+simulation has several drawbacks could overstate the 
+apparent superiority of the model.</p>
+
+<p>First, the simulation assumes 
+that on the first day of 2016 all inspections that will be 
+made during 2016 are fully known to the model. In
+practice,  inspections that result from complaints and 
+food poisoning incidents are not and cannot be known in 
+advance. Thus, the universe of 
+observable future inspections should be limited.</p>
+
+<p>Furthermore, we know 
+from analyzing the inspections of 2016 that the City of 
+Chicago completes on average 69 inspections per day.  so 
+The rate at which new inspections arrive should therefore 
+be on this order of magnitude. Without more knowledge of 
+the inspection discovery process it is impossible to build 
+a simulation whose results would be an “apples to apples” 
+comparison with the actual inspections from 2016. 
+This problem can be thought of as follows: what our
+ranking model does is shift failed inspections forward in 
+time within the time interval being considered. If 2016 is 
+split into many small inspection intervals, each with 
+their own limited information regarding future 
+inspections, the overall forward shift of failures is 
+small. Thus, the performance of the model depends on the 
+size of the lookahead time interval. The problem is 
+further complicated by the fact that different types of 
+inspections with different failure rates have different 
+lookahead times.</p>
+
+<p>In addition, a true “average fail days” metric should be 
+calculated from a start date that indicates the first day 
+a restaurant could have failed an inspection in order to 
+reflect the actual number of days that consumers were at 
+risk. In order to calculate this metric we would need 
+know when establishments qualify for inspection.</p>
+
+<p>Given these considerations, the true test for our ranking 
+model is to run it in practice, as the order in which 
+inspections appear and are performed has an impact on 
+which inspections are made in the future.</p>
+
+<p>Nonetheless, we believe that our results show promise
+and indicate that there is still room for improvement
+in optimizing the City’s inspection process using
+analytics.</p>
 
 
 
