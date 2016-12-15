@@ -38,9 +38,20 @@
 
 <h1>Imputing Missing Values</h1>
 
-<p>This is where Jeremy will drop some knowledge about missing values.</p>
+<p>The dataset - collated over several sources - was rich with upwards of 120,000 observations and 64 features. Based on our exploration and domain expertise with the data, we reduced the features to the 40 or so most meaningful.</p>
 
-<p><img src="/foodinspections/images/nan_values.png" alt="Test" /></p>
+<p>Still, the split of complete observations (no missing values) to incomplete observations (missing values) was roughly one to one. (50% of observations had NaN values.) So a substantial imputation was required. We could be confident the imputed data would be reliable – 50% of observations had missing values but only 9 or 10% of values were missing.</p>
+
+<p><img src="/foodinspections/images/imputation_exploration.png" alt="Test" /></p>
+
+<p>The approach we took was imputation by mean (for quantitative features) or mode (for categorical features) of the nearest neighbor observations. After appropriately encoding categorical features and cleaning up other features on an ad hoc basis, we split the data into a ‘train set’ corresponding to observations with no missing values and a ‘test set’ corresponding to observations with one or more missing values. In this k-NN imputer, the predictors corresponded to features that were filled in for all observations and the response being predicted corresponded to features that were not yet filled in for all observations. Rather than taking an approach of arbitrarily selecting features to fill and then adding this column to the imputer to impute the remaining features, we started with a set of full features (having filled some in using aggregations like mean or mode for a few with very few NaN values) and used these to compute, for each observation in the test set, the $k = 5$ nearest neighbors in the train set. Then for each incomplete feature, we used the values from the nearest neighbors to impute. The code for the final few steps is commented (overly commented) here:</p>
+
+<p><img src="/foodinspections/images/imputer.png" alt="Test" /></p>
+
+<p>The resulting dataset is available in <code class="highlighter-rouge">data\data_ready.csv</code>.</p>
+
+<p>This approach is imperfect but also intuitive and advantageous from a complexity standpoint. 
+It is available in <code class="highlighter-rouge">III_ChicagoFoodInspection_CS109a_Imputation_and_Encoding.ipynb</code>.</p>
 
 
 <br>
