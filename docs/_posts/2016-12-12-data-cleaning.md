@@ -18,7 +18,7 @@ Weather | [NOAA's Daily Summaries](https://www.ncdc.noaa.gov/cdo-web/datasets)
 ## Building the Dataset
 
 To begin the data collection process, we collected all of the food inspections available
-between 2010 and **the date on which we did collection.** These
+between Jan 4 2010 and Dec 2 2016. These
 records formed the core of the dataset, and we used the businesses indicated
 as inspected as the input to the next step.
 
@@ -59,8 +59,8 @@ inspections to derive the following variables:
 |`previous_minor`| Indicator for previous minor violation.
 |`previous_corrected`| Indicator for previous collected violations. 
 
-The data at this stage is available in `data\data_built_features.csv`. The work for this stage is available
-in `I_ChicagoFoodInspection_CS109a_Build_Features.ipynb`.
+The data at this stage is available in [`data_built_features.csv`](https://www.dropbox.com/s/v791vnsrit050nv/data_built_features.csv?dl=0) on Dropbox. The work for this stage is available
+in [`I_ChicagoFoodInspection_CS109a_Build_Features.ipynb`](https://github.com/Fggw/foodinspections/blob/master/I_ChicagoFoodInspection_CS109a_Build_Features.ipynb).
 
 ## Adding Crime and Sanitation Data
 
@@ -99,7 +99,7 @@ like this:
 
 The code that collected this data, built the grid,
 and then built the heatmaps is available in 
-`II_ChicagoFoodInspection_CS109a_Crime+Sanit Clean.ipynb`.
+[`II_ChicagoFoodInspection_CS109a_Crime+Sanit Clean.ipynb`](https://github.com/Fggw/foodinspections/blob/master/II_ChicagoFoodInspection_CS109a_Crime%2BSanit%20Clean.ipynb).
 
 Each inspection row, which includes a location
 at which the inspection took place, was then associated

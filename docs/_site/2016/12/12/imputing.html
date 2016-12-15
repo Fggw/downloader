@@ -44,14 +44,34 @@
 
 <p><img src="/foodinspections/images/imputation_exploration.png" alt="Test" /></p>
 
-<p>The approach we took was imputation by mean (for quantitative features) or mode (for categorical features) of the nearest neighbor observations. After appropriately encoding categorical features and cleaning up other features on an ad hoc basis, we split the data into a ‘train set’ corresponding to observations with no missing values and a ‘test set’ corresponding to observations with one or more missing values. In this k-NN imputer, the predictors corresponded to features that were filled in for all observations and the response being predicted corresponded to features that were not yet filled in for all observations. Rather than taking an approach of arbitrarily selecting features to fill and then adding this column to the imputer to impute the remaining features, we started with a set of full features (having filled some in using aggregations like mean or mode for a few with very few NaN values) and used these to compute, for each observation in the test set, the $k = 5$ nearest neighbors in the train set. Then for each incomplete feature, we used the values from the nearest neighbors to impute. The code for the final few steps is commented (overly commented) here:</p>
+<p>The approach we took was imputation by mean (for quantitative features) or mode (for categorical features) of the nearest neighbor observations. After appropriately encoding categorical features and cleaning up other features on an ad hoc basis, we split the data into a ‘train set’ corresponding to observations with no missing values and a ‘test set’ corresponding to observations with one or more missing values.</p>
 
-<p><img src="/foodinspections/images/imputer.png" alt="Test" /></p>
+<p>In this k-NN imputer, the predictors corresponded to features that were filled in for all observations and the response being predicted corresponded to features that were not yet filled in for all observations. Rather than taking an approach of arbitrarily selecting features to fill and then adding this column to the imputer to impute the remaining features, we started with a set of full features (having filled some in using aggregations like mean or mode for a few with very few NaN values) and used these to compute, for each observation in the test set, the <code class="highlighter-rouge">k = 5</code> nearest neighbors in the train set. Then for each incomplete feature, we used the values from the nearest neighbors to impute. The code for the final few steps is commented (overly commented) here:</p>
 
-<p>The resulting dataset is available in <code class="highlighter-rouge">data\data_ready.csv</code>.</p>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># for each observation with incomplete features</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">test</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span> 
+    
+    <span class="c"># return indices of nearest neighbors with complete features</span>
+    <span class="n">ind</span> <span class="o">=</span> <span class="n">knn</span><span class="o">.</span><span class="n">kneighbors</span><span class="p">(</span><span class="n">X</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">impute_cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">return_distance</span><span class="o">=</span><span class="bp">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> 
+
+    <span class="c"># for each feature that're NaNs    </span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">test</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">row</span><span class="o">.</span><span class="n">isnull</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">]:</span> 
+        <span class="c"># get vals from nearest neighbors for this col</span>
+        <span class="n">train_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ind</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span> 
+        
+        <span class="c"># if indicator </span>
+        <span class="k">if</span> <span class="n">train</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span> 
+            <span class="c"># fill w/ mode</span>
+            <span class="n">test</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">mode</span><span class="p">(</span><span class="n">train_vals</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># fill w/ mean</span>
+            <span class="n">test</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">train_vals</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> </code></pre></figure>
+
+<p>The resulting dataset is available in <a href="https://www.dropbox.com/s/e2hwpdninexi7cc/data_ready.csv?dl=0"><code class="highlighter-rouge">data_ready.csv</code></a> 
+on Dropbox.</p>
 
 <p>This approach is imperfect but also intuitive and advantageous from a complexity standpoint. 
-It is available in <code class="highlighter-rouge">III_ChicagoFoodInspection_CS109a_Imputation_and_Encoding.ipynb</code>.</p>
+It is available in <a href="https://github.com/Fggw/foodinspections/blob/master/III_ChicagoFoodInspection_CS109a_Imputation_and_Encoding.ipynb"><code class="highlighter-rouge">III_ChicagoFoodInspection_CS109a_Imputation_and_Encoding.ipynb</code></a>.</p>
 
 
 <br>

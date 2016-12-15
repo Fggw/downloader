@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  
+  <head>
+  <meta charset="UTF-8">
+  <title>Optimizing Food Inspections in Chicago</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/foodinspections/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/foodinspections/css/cayman.css">
+
+    <script type="text/javascript" async
+      src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+
+</head>
+
+  <body>
+    <section class="page-header">
+  <h1 class="project-name">Optimizing Food Inspections in Chicago</h1>
+  <h2 class="project-tagline">A Final Project for CS109a at Harvard University</h2>
+  <a href="http://github.com/fggw/foodinspections/" class="btn">View on GitHub</a>
+</section>
+
+    <section class="main-content">
+      
+      
+
+
+
+
+
+
+<center> <a href="/foodinspections/2016/12/12/conclusion.html"> &#8592; Conclusion</a> </center>
+
+
+
+<h1>Fail Day Calculation</h1>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">download</span> <span class="kn">import</span> <span class="n">main</span>
+</code></pre>
+</div>
+
+<p>First we load in the data:</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">optparse</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">radians</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">asin</span><span class="p">,</span> <span class="n">sqrt</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="nb">exit</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">seaborn</span>
+
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'DOWNLOADED_DATA.csv'</span><span class="p">)</span>
+
+
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+<span class="n">result_possibilities</span> <span class="o">=</span> <span class="p">[</span><span class="s">'Pass'</span><span class="p">,</span> <span class="s">'Fail'</span><span class="p">,</span> <span class="s">'Pass w/ Conditions'</span><span class="p">]</span>
+<span class="n">valid_result_bools</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span> <span class="ow">in</span> <span class="n">result_possibilities</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">valid_result_bools</span><span class="p">]</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">fail</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s">'Fail'</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    
+    
+<span class="k">def</span> <span class="nf">grocery_store</span><span class="p">(</span><span class="n">facility_type</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s">'Grocery Store'</span> <span class="o">==</span> <span class="n">facility_type</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">data</span><span class="p">[</span><span class="s">'result_binary'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">fail</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+<span class="n">data</span><span class="p">[</span><span class="s">'grocery'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">grocery_store</span><span class="p">(</span><span class="n">facility_type</span><span class="p">)</span> <span class="k">for</span> <span class="n">facility_type</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">facility_type</span><span class="p">]</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">top_inspection_types</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'inspection_type'</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">result_binary</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+<span class="n">top_inspection_types_sorted</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'inspection_type'</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">result_binary</span><span class="p">[</span><span class="n">top_inspection_types</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">index</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span> <span class="c"># Create matplotlib figure</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span> <span class="c"># Create matplotlib axes</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span> <span class="c"># Create another axes that shares the same x-axis as ax.</span>
+<span class="n">width</span> <span class="o">=</span> <span class="mf">0.4</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s">'font'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">'serif'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s">'font'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">'serif'</span><span class="p">)</span>
+
+
+<span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'inspection_type'</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">result_binary</span><span class="p">[</span><span class="n">top_inspection_types</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s">'bar'</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">'r'</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span><span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">percentage_1</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'inspection_type'</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">result_binary</span><span class="p">[</span><span class="n">top_inspection_types_sorted</span><span class="p">]</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">percentage_1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s">'bar'</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">'b'</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span><span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">'Failure Rate'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">'Fraction of Total Inpsections'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">'Inspection Type'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Failure Rates by Inspection Type'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">32</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">labels</span> <span class="o">=</span> <span class="n">top_inspection_types_sorted</span><span class="p">,</span> <span class="n">ha</span> <span class="o">=</span> <span class="s">'right'</span><span class="p">)</span>
+<span class="n">leg</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s">'Failure Rate'</span><span class="p">],</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.825</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">leg2</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s">'Fraction of Total Inspections'</span><span class="p">],</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.975</span><span class="p">,</span> <span class="mf">0.825</span><span class="p">),</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">,</span><span class="mf">9.6</span><span class="p">)</span>
+
+<span class="n">leg</span><span class="o">.</span><span class="n">get_frame</span><span class="p">()</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">leg2</span><span class="o">.</span><span class="n">get_frame</span><span class="p">()</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small')</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_rotation</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+
+              
+                
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small') </span>
+
+<span class="k">for</span> <span class="n">label2</span> <span class="ow">in</span> <span class="n">ax2</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_majorticklabels</span><span class="p">():</span>
+                <span class="n">label2</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small')  </span>
+
+</code></pre>
+</div>
+
+<p><img src="fail_day_calculation_files/fail_day_calculation_7_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">inspection_type_dummies</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">'inspection_type'</span><span class="p">])</span>
+<span class="n">inspection_type_dummies</span> <span class="o">=</span> <span class="n">inspection_type_dummies</span><span class="p">[</span><span class="n">top_inspection_types</span><span class="p">]</span>
+
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">data</span><span class="p">,</span><span class="n">inspection_type_dummies</span><span class="p">],</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">join</span><span class="o">=</span><span class="s">'inner'</span><span class="p">)</span>
+
+
+<span class="n">biz_cols</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s">'business_activity'</span> <span class="ow">in</span> <span class="n">col</span><span class="p">:</span>
+        <span class="n">biz_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+        
+<span class="n">count</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">mean</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">biz_cols</span><span class="p">:</span>
+    <span class="n">mean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">result_binary</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+    <span class="n">count</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">result_binary</span><span class="p">))</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">biz_cols_mean</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span><span class="n">biz_cols</span><span class="p">)</span>
+<span class="n">biz_cols_count</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">count</span><span class="p">,</span><span class="n">biz_cols</span><span class="p">)</span>
+
+<span class="n">biz_cols_count_top</span> <span class="o">=</span> <span class="n">biz_cols_count</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="mi">10</span><span class="p">]</span>
+
+
+<span class="n">biz_col_mean_sorted</span> <span class="o">=</span> <span class="n">biz_cols_mean</span><span class="p">[</span><span class="n">biz_cols_count_top</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">index</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span> <span class="c"># Create matplotlib figure</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span> <span class="c"># Create matplotlib axes</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span> <span class="c"># Create another axes that shares the same x-axis as ax.</span>
+
+<span class="n">width</span> <span class="o">=</span> <span class="mf">0.4</span>
+
+<span class="n">biz_cols_mean</span><span class="p">[</span><span class="n">biz_col_mean_sorted</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s">'bar'</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">'r'</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span><span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">percentage</span> <span class="o">=</span> <span class="n">biz_cols_count</span><span class="p">[</span><span class="n">biz_col_mean_sorted</span><span class="p">]</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">percentage</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s">'bar'</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">'b'</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span><span class="n">position</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">'Failure Rate'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">'Fraction of Total Inpsections'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">'Inspection Type'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Failure Rates by Most Common Business Activities'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">32</span><span class="p">)</span>
+<span class="n">leg</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s">'Failure Rate'</span><span class="p">],</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">leg2</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s">'Fraction of Total Inspections'</span><span class="p">],</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">,</span><span class="mf">9.6</span><span class="p">)</span>
+
+<span class="n">leg</span><span class="o">.</span><span class="n">get_frame</span><span class="p">()</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">leg2</span><span class="o">.</span><span class="n">get_frame</span><span class="p">()</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+
+
+<span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticklabels</span><span class="p">([</span><span class="s">'Tavern'</span><span class="p">,</span>
+ <span class="s">'Sale of Tobacco'</span><span class="p">,</span> 
+ <span class="s">'Onsite Entertainment'</span><span class="p">,</span> 
+ <span class="s">'Food &amp; Seating'</span><span class="p">,</span>
+ <span class="s">'Liquor Outdoors'</span><span class="p">,</span>
+ <span class="s">'Consumption of Liquor on Premise'</span><span class="p">,</span>
+ <span class="s">'Sales, Packaged Liquor'</span><span class="p">,</span>
+ <span class="s">'Food &amp; Dining Area'</span><span class="p">,</span>
+ <span class="s">'Sales, Perishable Foods'</span><span class="p">,</span>
+ <span class="s">'Catering of Liquor'</span><span class="p">],</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">ha</span> <span class="o">=</span> <span class="s">'right'</span><span class="p">)</span>
+
+
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small')</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_rotation</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+
+              
+                
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small') </span>
+
+<span class="k">for</span> <span class="n">label2</span> <span class="ow">in</span> <span class="n">ax2</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_majorticklabels</span><span class="p">():</span>
+                <span class="n">label2</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small')  </span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p><img src="fail_day_calculation_files/fail_day_calculation_9_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">results_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'pred_prob_for_fails_cv.csv'</span><span class="p">)</span>
+<span class="n">results_data</span><span class="p">[</span><span class="s">'inspection_date'</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">results_data</span><span class="p">[</span><span class="s">'inspection_date'</span><span class="p">],</span><span class="n">format</span> <span class="o">=</span> <span class="s">"</span><span class="si">%</span><span class="s">y-</span><span class="si">%</span><span class="s">m-</span><span class="si">%</span><span class="s">d"</span><span class="p">)</span>
+<span class="n">results_data</span><span class="p">[</span><span class="s">'ids'</span><span class="p">]</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[</span><span class="s">'Unnamed: 0'</span><span class="p">]</span>
+
+
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">results_data</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+
+
+</code></pre>
+</div>
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Unnamed: 0</th>
+      <th>AdaBoost, log loss: 0.73, params = ['n_estimators: 100']</th>
+      <th>KNN, log loss: 17.24, params = ['n_neighbors: 50']</th>
+      <th>LDA, log loss: 0.72, params = ['shrinkage: 0.0', 'solver: lsqr']</th>
+      <th>LogReg, log loss: 0.75, params = ['C: 10.0']</th>
+      <th>QDA, log loss: 1.07, params = ['reg_param: 0.25']</th>
+      <th>RandomForest, log loss: 0.96, params = ['n_estimators: 50', 'max_features: 45', 'max_depth: 2']</th>
+      <th>inspection_date</th>
+      <th>result_binary</th>
+      <th>ids</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>5</td>
+      <td>0.500691</td>
+      <td>0.42</td>
+      <td>0.517646</td>
+      <td>0.522678</td>
+      <td>0.472780</td>
+      <td>0.475355</td>
+      <td>2016-01-26</td>
+      <td>0</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>24</td>
+      <td>0.493252</td>
+      <td>0.40</td>
+      <td>0.101334</td>
+      <td>0.090216</td>
+      <td>0.163932</td>
+      <td>0.259399</td>
+      <td>2016-06-23</td>
+      <td>0</td>
+      <td>24</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>29</td>
+      <td>0.498136</td>
+      <td>0.42</td>
+      <td>0.383257</td>
+      <td>0.378739</td>
+      <td>0.372917</td>
+      <td>0.475355</td>
+      <td>2016-03-01</td>
+      <td>0</td>
+      <td>29</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>36</td>
+      <td>0.498669</td>
+      <td>0.48</td>
+      <td>0.478759</td>
+      <td>0.466773</td>
+      <td>0.516154</td>
+      <td>0.475355</td>
+      <td>2016-09-16</td>
+      <td>0</td>
+      <td>36</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>37</td>
+      <td>0.499631</td>
+      <td>0.36</td>
+      <td>0.488194</td>
+      <td>0.498767</td>
+      <td>0.779546</td>
+      <td>0.475355</td>
+      <td>2016-06-29</td>
+      <td>0</td>
+      <td>37</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+<span class="kn">from</span> <span class="nn">dateutil.relativedelta</span> <span class="kn">import</span> <span class="n">relativedelta</span>  
+<span class="kn">import</span> <span class="nn">seaborn</span>
+<span class="n">seaborn</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s">'white'</span><span class="p">)</span>
+
+
+
+<span class="k">def</span> <span class="nf">list_rank</span><span class="p">(</span><span class="n">true_values</span><span class="p">,</span><span class="n">probabilities</span><span class="p">,</span><span class="n">data_test</span><span class="p">):</span>
+    <span class="n">result_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">probabilities</span><span class="p">,</span><span class="n">true_values</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">result_time_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">result_series</span><span class="o">.</span><span class="n">index</span><span class="p">,</span><span class="n">data_test</span><span class="o">.</span><span class="n">inspection_date</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result_series</span><span class="p">,</span><span class="n">result_time_series</span>
+    
+
+<span class="k">def</span> <span class="nf">series_running</span><span class="p">(</span><span class="n">result_time_series</span><span class="p">):</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result_time_series</span><span class="o">.</span><span class="n">result_binary</span><span class="p">)</span>
+    <span class="n">running_mean</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">running_mean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">running_mean</span><span class="p">,</span><span class="n">result_time_series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+
+
+<span class="k">def</span> <span class="nf">fail_days</span><span class="p">(</span><span class="n">result_timeseries</span><span class="p">):</span>
+    <span class="n">date_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result_timeseries</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">result_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result_timeseries</span><span class="o">.</span><span class="n">result_binary</span><span class="p">)</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">date_array</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">fail_days</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">date_ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_timeseries</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">date_array</span><span class="p">[</span><span class="n">date_ind</span><span class="p">]</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">date</span><span class="p">)</span> <span class="o">-</span> <span class="n">start_date</span>
+        <span class="n">fail_days</span> <span class="o">+=</span> <span class="n">delta</span><span class="o">.</span><span class="n">days</span><span class="o">*</span><span class="n">result_array</span><span class="p">[</span><span class="n">date_ind</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fail_days</span>
+
+
+
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">test_columns</span> <span class="o">=</span> <span class="n">results_data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+<span class="n">model_columns</span> <span class="o">=</span> <span class="n">results_data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">true_values</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[</span><span class="n">results_data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+<span class="n">test_data</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[</span><span class="n">test_columns</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s">'inspection_date'</span><span class="p">)</span>
+<span class="n">test_data</span> <span class="o">=</span> <span class="n">test_data</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">test_data</span><span class="o">.</span><span class="n">inspection_date</span><span class="p">])</span>
+
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">fail_day_count_mean</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">model_column</span> <span class="ow">in</span> <span class="n">model_columns</span><span class="p">:</span>
+    <span class="n">result_series</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[[</span><span class="n">model_column</span><span class="p">,</span><span class="s">'result_binary'</span><span class="p">,</span><span class="s">'ids'</span><span class="p">]]</span>
+    <span class="n">sorted_series</span> <span class="o">=</span> <span class="n">result_series</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">result_series</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">sorted_series</span> <span class="o">=</span> <span class="n">sorted_series</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">test_data</span><span class="o">.</span><span class="n">inspection_date</span><span class="p">])</span>
+    <span class="n">fail_day_count_mean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fail_days</span><span class="p">(</span><span class="n">sorted_series</span><span class="p">)</span><span class="o">/</span><span class="n">test_data</span><span class="o">.</span><span class="n">result_binary</span><span class="o">.</span><span class="nb">sum</span><span class="p">())</span>
+    
+    
+    
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">true_fail_days</span> <span class="o">=</span> <span class="n">fail_days</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span><span class="o">/</span><span class="n">test_data</span><span class="o">.</span><span class="n">result_binary</span><span class="o">.</span><span class="nb">sum</span><span class="p">()</span>
+
+
+
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">sorted_failday_results</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Actual                                                                                             152
+KNN, log loss: 17.24, params = ['n_neighbors: 50']                                                 149
+RandomForest, log loss: 0.96, params = ['n_estimators: 50', 'max_features: 45', 'max_depth: 2']    120
+QDA, log loss: 1.07, params = ['reg_param: 0.25']                                                  119
+LDA, log loss: 0.72, params = ['shrinkage: 0.0', 'solver: lsqr']                                   112
+LogReg, log loss: 0.75, params = ['C: 10.0']                                                       111
+AdaBoost, log loss: 0.73, params = ['n_estimators: 100']                                           108
+dtype: int64
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">all_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">model_columns</span><span class="p">)</span>
+<span class="n">all_cols</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">'Actual'</span><span class="p">)</span>
+<span class="n">color_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s">'w'</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">model_columns</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s">'r'</span><span class="p">],</span><span class="n">index</span> <span class="o">=</span> <span class="n">all_cols</span><span class="p">)</span>
+<span class="n">sorted_failday_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">fail_day_count_mean</span> <span class="o">+</span> <span class="p">[</span><span class="n">true_fail_days</span><span class="p">],</span><span class="n">index</span> <span class="o">=</span> <span class="n">all_cols</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">color_list</span> <span class="o">=</span>  <span class="nb">list</span><span class="p">(</span><span class="n">color_series</span><span class="p">[</span><span class="n">sorted_failday_results</span><span class="o">.</span><span class="n">index</span><span class="p">])</span>
+
+
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span> <span class="c"># Create matplotlib axes</span>
+
+<span class="n">sorted_failday_results</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span> <span class="o">=</span> <span class="s">'bar'</span><span class="p">,</span><span class="n">color</span><span class="o">=</span> <span class="n">color_list</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s">'black'</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Average Days Until Inspection'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s">'font'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">'serif'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Model'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Fail Days'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sorted_failday_results</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">ha</span> <span class="o">=</span> <span class="s">'right'</span><span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticklabels</span><span class="p">([</span><span class="s">'Actual'</span><span class="p">,</span>
+ <span class="s">'KNN'</span><span class="p">,</span> 
+ <span class="s">'Random Forest'</span><span class="p">,</span> 
+ <span class="s">'QDA'</span><span class="p">,</span>
+ <span class="s">'LDA'</span><span class="p">,</span>
+ <span class="s">'LogReg'</span><span class="p">,</span>
+ <span class="s">'AdaBoost'</span><span class="p">],</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">ha</span> <span class="o">=</span> <span class="s">'right'</span><span class="p">)</span>
+
+
+
+
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax1</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small')</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_rotation</span><span class="p">(</span><span class="mi">45</span><span class="p">)</span>
+                
+                
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax1</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small') </span>
+                
+                
+</code></pre>
+</div>
+
+<p><img src="fail_day_calculation_files/fail_day_calculation_17_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">ax3</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span> <span class="c"># Create matplotlib axes</span>
+<span class="n">ax4</span> <span class="o">=</span> <span class="n">ax3</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span> <span class="c"># Create another axes that shares the same x-axis as ax.</span>
+
+<span class="n">test_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'inspection_date'</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax3</span><span class="p">)</span>
+<span class="n">test_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'inspection_date'</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()[</span><span class="s">'result_binary'</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax4</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">'r'</span><span class="p">)</span>
+
+<span class="k">print</span> <span class="n">test_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s">'inspection_date'</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+
+<span class="n">ax3</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s">'Number of Inspections'</span><span class="p">],</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">ax4</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s">'Failure Rate'</span><span class="p">],</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.905</span><span class="p">,</span> <span class="mf">0.925</span><span class="p">),</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s">'font'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">'serif'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Daily Inspection Number and Failure Rate'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Date'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">ax3</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">'Number of Inspections'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">ax4</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">'Failure Rate'</span><span class="p">,</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax3</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small') </span>
+                
+                
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax4</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small') </span>
+
+            
+<span class="k">for</span> <span class="n">label3</span> <span class="ow">in</span> <span class="n">ax3</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_majorticklabels</span><span class="p">():</span>
+                <span class="n">label3</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small') </span>
+                
+<span class="k">for</span> <span class="n">label4</span> <span class="ow">in</span> <span class="n">ax4</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_majorticklabels</span><span class="p">():</span>
+                <span class="n">label4</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small')  </span>
+                
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>result_binary    69.04386
+ids              69.04386
+dtype: float64
+</code></pre>
+</div>
+
+<p><img src="fail_day_calculation_files/fail_day_calculation_18_1.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span> <span class="c"># Create matplotlib axes</span>
+
+<span class="k">for</span> <span class="n">model_column</span> <span class="ow">in</span> <span class="n">model_columns</span><span class="p">:</span>
+    <span class="n">result_series</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[[</span><span class="n">model_column</span><span class="p">,</span><span class="s">'result_binary'</span><span class="p">]]</span>
+    <span class="n">sorted_series</span> <span class="o">=</span> <span class="n">result_series</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">result_series</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">sorted_series</span> <span class="o">=</span> <span class="n">sorted_series</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">test_data</span><span class="o">.</span><span class="n">inspection_date</span><span class="p">])</span>
+    <span class="n">series_running</span><span class="p">(</span><span class="n">sorted_series</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax1</span><span class="p">)</span>
+    
+<span class="n">series_running</span><span class="p">(</span><span class="n">test_data</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">legend</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">ax1</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">'r'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">model_columns</span><span class="p">),</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">),</span><span class="n">fontsize</span> <span class="o">=</span> <span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Cumulative Failure Rate For Model Ordering'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time of Inspection'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Failure Rate'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>&lt;matplotlib.text.Text at 0x10dfdad10&gt;
+</code></pre>
+</div>
+
+<p><img src="fail_day_calculation_files/fail_day_calculation_19_1.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">model_column</span> <span class="o">=</span> <span class="n">model_columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">result_series</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[[</span><span class="n">model_column</span><span class="p">,</span><span class="s">'result_binary'</span><span class="p">]]</span>
+<span class="n">sorted_series</span> <span class="o">=</span> <span class="n">result_series</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">result_series</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">sorted_series</span> <span class="o">=</span> <span class="n">sorted_series</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">test_data</span><span class="o">.</span><span class="n">inspection_date</span><span class="p">])</span>
+<span class="n">result_data_rolling_mean</span> <span class="o">=</span> <span class="n">sorted_series</span><span class="o">.</span><span class="n">result_binary</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">result_data_rolling_mean</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>&lt;matplotlib.axes._subplots.AxesSubplot at 0x140b1b190&gt;
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="nb">list</span><span class="p">(</span><span class="n">model_columns</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>["AdaBoost, log loss: 0.73, params = ['n_estimators: 100']",
+ "KNN, log loss: 17.24, params = ['n_neighbors: 50']",
+ "LDA, log loss: 0.72, params = ['shrinkage: 0.0', 'solver: lsqr']",
+ "LogReg, log loss: 0.75, params = ['C: 10.0']",
+ "QDA, log loss: 1.07, params = ['reg_param: 0.25']",
+ "RandomForest, log loss: 0.96, params = ['n_estimators: 50', 'max_features: 45', 'max_depth: 2']"]
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">12</span><span class="p">))</span>
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span> <span class="c"># Create matplotlib axes</span>
+
+<span class="k">for</span> <span class="n">model_column</span> <span class="ow">in</span> <span class="n">model_columns</span><span class="p">:</span>
+    <span class="n">result_series</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[[</span><span class="n">model_column</span><span class="p">,</span><span class="s">'result_binary'</span><span class="p">]]</span>
+    <span class="n">sorted_series</span> <span class="o">=</span> <span class="n">result_series</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">result_series</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">sorted_series</span> <span class="o">=</span> <span class="n">sorted_series</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">test_data</span><span class="o">.</span><span class="n">inspection_date</span><span class="p">])</span>
+    <span class="n">result_data_rolling_mean</span> <span class="o">=</span> <span class="n">sorted_series</span><span class="o">.</span><span class="n">result_binary</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">result_data_rolling_mean</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax1</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+    
+<span class="n">test_data</span><span class="o">.</span><span class="n">result_binary</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span> <span class="o">=</span><span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">legend</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">color</span> <span class="o">=</span> <span class="s">'r'</span><span class="p">,</span><span class="n">ax</span> <span class="o">=</span> <span class="n">ax1</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s">'AdaBoost'</span><span class="p">,</span>
+ <span class="s">'KNN'</span><span class="p">,</span> 
+ <span class="s">'LDA'</span><span class="p">,</span>
+ <span class="s">'LogReg'</span><span class="p">,</span>
+ <span class="s">'QDA'</span><span class="p">,</span>
+ <span class="s">'Random Forest'</span><span class="p">,</span>
+ <span class="s">'Actual'</span><span class="p">],</span><span class="n">loc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">fontsize</span> <span class="o">=</span> <span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s">'font'</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s">'serif'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">'Rolling Inspection Failure Rate For Best Model Rank (n = 1000)'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time of Inspection'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Inspection Failure Rate'</span><span class="p">,</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax1</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small') </span>
+<span class="k">for</span> <span class="n">tick</span> <span class="ow">in</span> <span class="n">ax1</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">get_major_ticks</span><span class="p">():</span>
+                <span class="n">tick</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> 
+                <span class="c"># specify integer or one of preset strings, e.g.</span>
+                <span class="c">#tick.label.set_fontsize('x-small') </span>
+
+
+
+</code></pre>
+</div>
+
+<p><img src="fail_day_calculation_files/fail_day_calculation_23_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">rest_data_rolling_mean</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">rolling_mean</span><span class="p">(</span><span class="n">test_data_series</span><span class="p">,</span><span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+
+
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">all_ada_result</span> <span class="o">=</span> <span class="n">results_data</span><span class="p">[[</span><span class="n">model_columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="s">'result_binary'</span><span class="p">,</span><span class="s">'ids'</span><span class="p">,</span><span class="s">'inspection_date'</span><span class="p">]]</span>
+<span class="n">all_ada_result</span> <span class="o">=</span> <span class="n">all_ada_result</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">all_ada_result</span><span class="o">.</span><span class="n">ids</span><span class="p">])</span>
+<span class="n">all_ada_result</span> <span class="o">=</span> <span class="n">all_ada_result</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s">'inspection_date'</span><span class="p">)</span>
+<span class="n">all_ada_result</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>AdaBoost, log loss: 0.73, params = ['n_estimators: 100']</th>
+      <th>result_binary</th>
+      <th>ids</th>
+      <th>inspection_date</th>
+    </tr>
+    <tr>
+      <th>ids</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1893</th>
+      <td>0.497859</td>
+      <td>0</td>
+      <td>1893</td>
+      <td>2016-01-04</td>
+    </tr>
+    <tr>
+      <th>71285</th>
+      <td>0.499958</td>
+      <td>1</td>
+      <td>71285</td>
+      <td>2016-01-05</td>
+    </tr>
+    <tr>
+      <th>81062</th>
+      <td>0.501633</td>
+      <td>0</td>
+      <td>81062</td>
+      <td>2016-01-05</td>
+    </tr>
+    <tr>
+      <th>51941</th>
+      <td>0.495638</td>
+      <td>0</td>
+      <td>51941</td>
+      <td>2016-01-05</td>
+    </tr>
+    <tr>
+      <th>116038</th>
+      <td>0.500380</td>
+      <td>0</td>
+      <td>116038</td>
+      <td>2016-01-05</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+<span class="n">day_per_period</span> <span class="o">=</span> <span class="mi">30</span>
+
+<span class="c">#arbitrary</span>
+<span class="n">days_of_inspections_added</span> <span class="o">=</span> <span class="mi">30</span>
+
+<span class="c">#arbitarily decreased to make it so that more inspections come in than come out</span>
+<span class="n">inspections_per_day</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">claim_rate_vector</span> <span class="o">=</span> <span class="p">[]</span>
+
+
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">fail_days</span><span class="p">(</span><span class="n">result_timeseries</span><span class="p">,</span><span class="n">start_date</span><span class="p">):</span>
+    <span class="n">date_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result_timeseries</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">result_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">result_timeseries</span><span class="o">.</span><span class="n">result_binary</span><span class="p">)</span>
+    <span class="n">fail_days</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">date_ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_timeseries</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">date_array</span><span class="p">[</span><span class="n">date_ind</span><span class="p">]</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">date</span><span class="p">)</span> <span class="o">-</span> <span class="n">start_date</span>
+        <span class="n">fail_days</span> <span class="o">+=</span> <span class="n">delta</span><span class="o">.</span><span class="n">days</span><span class="o">*</span><span class="n">result_array</span><span class="p">[</span><span class="n">date_ind</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fail_days</span>
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+
+<span class="n">remaining_ada_result</span> <span class="o">=</span> <span class="n">all_ada_result</span>
+<span class="n">inspected_ids_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">start_date</span> <span class="o">=</span> <span class="n">all_ada_result</span><span class="o">.</span><span class="n">inspection_date</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">fail_days_total</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">fail_count_total</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">period</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    
+    <span class="n">current_date</span> <span class="o">=</span> <span class="n">all_ada_result</span><span class="o">.</span><span class="n">inspection_date</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">days</span> <span class="o">=</span> <span class="n">day_per_period</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">period</span><span class="p">)</span>
+    <span class="n">last_visible_date</span> <span class="o">=</span> <span class="n">all_ada_result</span><span class="o">.</span><span class="n">inspection_date</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">days</span> <span class="o">=</span> <span class="n">day_per_period</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">period</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">months</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+    
+    <span class="n">visible_ada_result</span> <span class="o">=</span> <span class="n">remaining_ada_result</span><span class="p">[</span><span class="n">remaining_ada_result</span><span class="o">.</span><span class="n">inspection_date</span> <span class="o">&lt;=</span> <span class="n">last_visible_date</span><span class="p">]</span>
+    <span class="n">sorted_series</span> <span class="o">=</span> <span class="n">visible_ada_result</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">visible_ada_result</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+    <span class="n">day_delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">inspection_num</span><span class="o">/</span><span class="p">(</span><span class="n">inspections_per_day</span><span class="o">*</span><span class="n">day_per_period</span><span class="p">)</span> <span class="k">for</span> <span class="n">inspection_num</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sorted_series</span><span class="p">)))</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">date_inspected</span> <span class="o">=</span> <span class="n">current_date</span> <span class="o">+</span> <span class="n">day_delta</span><span class="o">*</span><span class="n">relativedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    
+    <span class="n">sorted_series</span> <span class="o">=</span> <span class="n">sorted_series</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="n">date_inspected</span><span class="p">])</span>
+    
+    
+    
+    
+ 
+    <span class="n">inspected_ids</span> <span class="o">=</span> <span class="n">sorted_series</span><span class="o">.</span><span class="n">ids</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">inspections_per_day</span><span class="o">*</span><span class="n">day_per_period</span><span class="p">]</span>
+    <span class="n">inspected_series</span> <span class="o">=</span> <span class="n">sorted_series</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">inspections_per_day</span><span class="o">*</span><span class="n">day_per_period</span><span class="p">]</span>
+    <span class="n">fail_days_total</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fail_days</span><span class="p">(</span><span class="n">inspected_series</span><span class="p">,</span><span class="n">start_date</span><span class="p">))</span>
+    <span class="n">fail_count_total</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inspected_series</span><span class="o">.</span><span class="n">result_binary</span><span class="o">.</span><span class="nb">sum</span><span class="p">())</span>
+
+    
+    <span class="n">remaining_ada_result</span> <span class="o">=</span> <span class="n">remaining_ada_result</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">inspected_ids</span><span class="p">))</span>
+    
+    <span class="c">#plot running mean of inspected restaurants</span>
+    <span class="n">inspected_series</span><span class="o">.</span><span class="n">result_binary</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span> <span class="o">=</span> <span class="mi">419</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+    
+<span class="k">print</span> <span class="n">inspected_series</span><span class="o">.</span><span class="n">inspection_date</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">start_date</span>
+    
+    
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>71 days 00:00:00
+</code></pre>
+</div>
+
+<p><img src="fail_day_calculation_files/fail_day_calculation_29_1.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">fail_count_total</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[173,
+ 208,
+ 199,
+ 196,
+ 187,
+ 220,
+ 188,
+ 206,
+ 206,
+ 175,
+ 177,
+ 144,
+ 126,
+ 123,
+ 128,
+ 126,
+ 128,
+ 110,
+ 99,
+ 96,
+ 77]
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">fail_days_total</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fail_count_total</span><span class="p">))</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>255
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">fail_days_total</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>[0,
+ 6240,
+ 11940,
+ 17641,
+ 22440,
+ 33001,
+ 33840,
+ 43260,
+ 49440,
+ 47250,
+ 53100,
+ 47520,
+ 45360,
+ 47970,
+ 53761,
+ 56700,
+ 61440,
+ 56100,
+ 53460,
+ 54721,
+ 46200]
+</code></pre>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">inspected_series</span>
+</code></pre>
+</div>
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>AdaBoost, log loss: 0.73, params = ['n_estimators: 100']</th>
+      <th>result_binary</th>
+      <th>ids</th>
+      <th>inspection_date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498905</td>
+      <td>0</td>
+      <td>91994</td>
+      <td>2016-09-14</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498905</td>
+      <td>0</td>
+      <td>90976</td>
+      <td>2016-09-27</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498905</td>
+      <td>0</td>
+      <td>89523</td>
+      <td>2016-09-13</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498905</td>
+      <td>0</td>
+      <td>76327</td>
+      <td>2016-09-13</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498905</td>
+      <td>0</td>
+      <td>95772</td>
+      <td>2016-09-16</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498904</td>
+      <td>0</td>
+      <td>89905</td>
+      <td>2016-05-16</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498904</td>
+      <td>1</td>
+      <td>80697</td>
+      <td>2016-05-13</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498903</td>
+      <td>0</td>
+      <td>12688</td>
+      <td>2016-09-30</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498903</td>
+      <td>0</td>
+      <td>70981</td>
+      <td>2016-04-28</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498902</td>
+      <td>0</td>
+      <td>11246</td>
+      <td>2016-11-04</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498902</td>
+      <td>1</td>
+      <td>23977</td>
+      <td>2016-02-22</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498901</td>
+      <td>0</td>
+      <td>17388</td>
+      <td>2016-02-19</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498901</td>
+      <td>1</td>
+      <td>27462</td>
+      <td>2016-05-16</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498901</td>
+      <td>1</td>
+      <td>21682</td>
+      <td>2016-08-24</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498900</td>
+      <td>0</td>
+      <td>40839</td>
+      <td>2016-07-26</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498900</td>
+      <td>0</td>
+      <td>9532</td>
+      <td>2016-07-18</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498900</td>
+      <td>0</td>
+      <td>11798</td>
+      <td>2016-07-28</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498900</td>
+      <td>1</td>
+      <td>6592</td>
+      <td>2016-05-06</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498900</td>
+      <td>1</td>
+      <td>33280</td>
+      <td>2016-09-07</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498899</td>
+      <td>0</td>
+      <td>80157</td>
+      <td>2016-03-25</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498899</td>
+      <td>1</td>
+      <td>35298</td>
+      <td>2016-06-09</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498898</td>
+      <td>1</td>
+      <td>61805</td>
+      <td>2016-09-02</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498898</td>
+      <td>0</td>
+      <td>374</td>
+      <td>2016-06-29</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498896</td>
+      <td>1</td>
+      <td>20601</td>
+      <td>2016-10-25</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498895</td>
+      <td>0</td>
+      <td>24434</td>
+      <td>2016-05-09</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498895</td>
+      <td>0</td>
+      <td>12600</td>
+      <td>2016-10-27</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498894</td>
+      <td>0</td>
+      <td>18837</td>
+      <td>2016-07-28</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498894</td>
+      <td>1</td>
+      <td>41870</td>
+      <td>2016-07-13</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498894</td>
+      <td>0</td>
+      <td>26515</td>
+      <td>2016-03-10</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498893</td>
+      <td>0</td>
+      <td>107144</td>
+      <td>2016-02-25</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498778</td>
+      <td>1</td>
+      <td>22190</td>
+      <td>2016-07-26</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498777</td>
+      <td>1</td>
+      <td>12449</td>
+      <td>2016-01-15</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498777</td>
+      <td>0</td>
+      <td>79414</td>
+      <td>2016-05-12</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498777</td>
+      <td>0</td>
+      <td>61014</td>
+      <td>2016-03-30</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498777</td>
+      <td>0</td>
+      <td>28381</td>
+      <td>2016-09-20</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498777</td>
+      <td>1</td>
+      <td>29962</td>
+      <td>2016-06-30</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498776</td>
+      <td>0</td>
+      <td>85127</td>
+      <td>2016-01-06</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498776</td>
+      <td>0</td>
+      <td>31207</td>
+      <td>2016-06-14</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498775</td>
+      <td>0</td>
+      <td>41839</td>
+      <td>2016-06-13</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498775</td>
+      <td>0</td>
+      <td>3017</td>
+      <td>2016-04-14</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498774</td>
+      <td>0</td>
+      <td>114648</td>
+      <td>2016-07-13</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498774</td>
+      <td>1</td>
+      <td>101835</td>
+      <td>2016-02-08</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498774</td>
+      <td>0</td>
+      <td>100732</td>
+      <td>2016-07-08</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498774</td>
+      <td>0</td>
+      <td>108362</td>
+      <td>2016-03-18</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498773</td>
+      <td>0</td>
+      <td>16176</td>
+      <td>2016-11-16</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498773</td>
+      <td>0</td>
+      <td>8751</td>
+      <td>2016-04-12</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498772</td>
+      <td>0</td>
+      <td>35145</td>
+      <td>2016-02-26</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498772</td>
+      <td>0</td>
+      <td>90072</td>
+      <td>2016-07-08</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498772</td>
+      <td>0</td>
+      <td>94710</td>
+      <td>2016-01-22</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498772</td>
+      <td>0</td>
+      <td>45920</td>
+      <td>2016-05-17</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498771</td>
+      <td>0</td>
+      <td>15953</td>
+      <td>2016-01-14</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498771</td>
+      <td>0</td>
+      <td>16711</td>
+      <td>2016-03-17</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498771</td>
+      <td>0</td>
+      <td>111060</td>
+      <td>2016-07-25</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498771</td>
+      <td>0</td>
+      <td>91913</td>
+      <td>2016-03-15</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498771</td>
+      <td>0</td>
+      <td>61919</td>
+      <td>2016-06-17</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498771</td>
+      <td>0</td>
+      <td>104422</td>
+      <td>2016-01-28</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498771</td>
+      <td>1</td>
+      <td>51672</td>
+      <td>2016-08-15</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498770</td>
+      <td>1</td>
+      <td>109323</td>
+      <td>2016-01-12</td>
+    </tr>
+    <tr>
+      <th>2016-12-05</th>
+      <td>0.498770</td>
+      <td>1</td>
+      <td>37286</td>
+      <td>2016-07-15</td>
+    </tr>
+    <tr>
+      <th>2016-12-06</th>
+      <td>0.498769</td>
+      <td>0</td>
+      <td>26415</td>
+      <td>2016-06-24</td>
+    </tr>
+  </tbody>
+</table>
+<p>420 rows × 4 columns</p>
+</div>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="n">inspections_per_day</span>
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>40
+</code></pre>
+</div>
+
+<p>In order to test the effectiveness of our model in reducing the number of days it takes until establishments are caught for inspection violations we simulated the inspection process under the ranking determined by our model output and compared it with the actual inspections made in 2016. The metric used to compare our model to the actual inspection results is “average fail days”. This is the average number of days it takes to inspect business that fail inspections, measured from the day they enter the universe of establishments that can possibly be inspected.</p>
+
+<p>The tuned Adaboost model reduced the number of days it took to inspect establishments that failed by 44 days, at 108 vs. 152 in the actual 2016 data. However this simulation has several drawbacks which have inflated the apparent superieority of the model. The simulation assumes that on the first day of 2016 all inspections that will be made during 2016 are fully known to the model. In reality, inspections that result from complaints and food poisoning incidents are not known in advance. Thus, the universe of observable future inspections should be limited. We know from analyzing the inspections of 2016 that the city of Chicago completes on average 69 inpsections per day and so the rate of that new inspections are discovered should be on this order of magnitude, but without more knowledge of the inspection discovery process it is impossible to build a simulation whose results would be apples to apples comparison with the actual inspections from 2016. The problem can be thought of as follows: what our ranking model does is shift failed inspections forward in time within the time interval being considered. If 2016 is split into many small inspection intervals, each with their own limited information regarding future inspections, the overall forward shift of failures is small. Thus, the performance of the model depends on the size of the lookahead time interval. The problem is further complicated by the fact that different types of inspections with different failure rates have different lookahead times.</p>
+
+<p>Furthermore, a true “average fail days” metric should be calculated from a start date that indicates the first day a restaurant could have failed an inspection in order to reflect the actual number of days that consumers were at risk. In order to calculate this metric we would need know when establishments qualify for inspection.</p>
+
+<p>Given these considerations, the true test for our ranking model is to run it in practice, as the order in which inspections appear and are performed has an impact on which inspections are made in the future.</p>
+
+<div class="language-python highlighter-rouge"><pre class="highlight"><code>
+</code></pre>
+</div>
+
+
+<br>
+
+
+<center> <a href="/foodinspections/2016/12/12/conclusion.html"> &#8592; Conclusion</a> </center>
+
+
+
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="http://localhost:4000/foodinspections/">Optimizing Food Inspections in Chicago</a> was created for CS109a by: 
+    <ul> 
+    
+        <li><a href="http://no.website">Luke Farewell</a></li>
+    
+        <li><a href="http://no.website">Jake Gober</a></li>
+    
+        <li><a href="http://sa.muel.green">Samuel Green</a></li>
+    
+        <li><a href="http://no.website">Jeremy Welborn</a></li>
+    
+    </ul>
+
+  <span class="site-footer-owner">We were advised by <a href="https://github.com/tnames">Taylor Names.
+</footer>
+
+
+    </section>
+
+  </body>
+</html>
